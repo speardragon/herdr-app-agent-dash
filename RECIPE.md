@@ -6,6 +6,8 @@ them). The rest is one agent's history through six lenses: overview, tool calls,
 prompts, changes and sub-agents. Every tool call has a view made for that tool. The data
 comes from the agents' own transcripts on disk, read incrementally while they work. A button
 opens the same view as a web page served from this computer. The interface text is Korean.
+What sets it apart: Jira, Notion and Slack MCP calls are drawn like those sites (the three
+sheets at the top of the picture), not as JSON.
 
 ![Agent Dash](preview.png)
 

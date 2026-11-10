@@ -1,14 +1,36 @@
 # Agent Dash for the Herdr app
 
 A control room for the coding agents running in Herdr. Press `cmd+shift+a`, pick an agent,
-and read what it did: its tool calls drawn per tool, the links in the conversation, your
-prompts, the files it changed, and the sub-agents it started.
+and read what it did. Every tool call gets a view made for that tool, and **Jira, Notion
+and Slack MCP calls are drawn the way those sites look**: an issue page, a Notion page, a
+Slack thread, instead of a wall of JSON.
 
 ![Agent Dash](preview.png)
 
 It reads Claude Code and Codex transcripts on this computer. The interface text is Korean.
 
-## What it shows
+## MCP calls, drawn like the site
+
+When an agent calls an MCP tool, the result is usually JSON or a long text blob. Agent Dash
+parses it and draws it in the product's own light theme. "원본" switches back to the raw
+input and output, and a button opens the real page.
+
+| | |
+| --- | --- |
+| ![Jira issue](images/jira.png) | ![Jira search](images/jira-list.png) |
+| ![Notion page](images/notion.png) | ![Slack thread](images/slack.png) |
+
+| Product | Calls with a view | What it draws |
+| --- | --- | --- |
+| Jira | `getJiraIssue`, `searchJiraIssuesUsingJql`, `createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, `addCommentToJiraIssue`, `getTransitionsForJiraIssue` | Breadcrumb, title, status lozenge, the details panel (assignee, reporter, parent, due date, priority, labels), the description and comments as rich text; a work-item table for a JQL search |
+| Notion | `notion-fetch`, `notion-search`, `notion-query-data-sources`, `notion-update-page`, `notion-create-pages` | A page with its breadcrumb, icon, properties and blocks (callouts, tables, code, to-dos, quotes); search results; database rows as a table; for writes, what was sent |
+| Slack | `slack_read_thread`, `slack_read_channel`, `slack_search_public`, `slack_search_public_and_private`, `slack_send_message` | A thread or channel with authors, times, mentions, links, code and reactions; search results as cards |
+
+The MCP servers send no profile pictures, so people are drawn as initials. Other MCP tools
+get their arguments as a table and the result as a JSON tree; MongoDB tools get a
+Compass-like view. The data in these screenshots is a made-up sample project.
+
+## The lenses
 
 | Lens | What you get |
 | --- | --- |
@@ -21,8 +43,9 @@ It reads Claude Code and Codex transcripts on this computer. The interface text 
 
 | | |
 | --- | --- |
-| ![Tool calls](images/calls.png) | ![Sub-agents](images/subs.png) |
-| ![Changes](images/changes.png) | ![Links](images/links.png) |
+| ![Overview](images/overview.png) | ![Tool calls](images/calls.png) |
+| ![Sub-agents](images/subs.png) | ![Changes](images/changes.png) |
+| ![Links](images/links.png) | ![Prompts](images/prompts.png) |
 
 The left rail lists agents by status or by space. A button opens the same view in the
 browser.
