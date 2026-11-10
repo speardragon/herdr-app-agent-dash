@@ -1,0 +1,11 @@
+# Written by the Herdr app into every mod folder
+jsconfig.json
+*.d.ts
+.DS_Store
+# Written while the mod runs (web server state, copied images)
+mods/agent-dash/.web/
+mods/agent-dash/.cache/
+# Build check output
+web/dist/
+__pycache__/
+*.pyc

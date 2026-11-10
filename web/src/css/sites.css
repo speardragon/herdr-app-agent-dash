@@ -1,0 +1,197 @@
+/* Jira, Notion and Slack calls drawn in those sites' own light themes. The colors, sizes and
+   radii are the sites' (read from the live pages), not this page's tokens. */
+.site { border-radius: 10px; overflow: hidden; border: 1px solid #dddee1; background: #fff; color-scheme: light; text-align: left; }
+.site a { text-decoration: none; }
+.site .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site .grow { flex: 1; }
+.site-top { display: flex; align-items: center; gap: 10px; padding: 14px 24px 0; min-height: 44px; }
+.site .open { flex: none; display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 4px; border: 1px solid #b7b9be; font-size: 13px; color: inherit; white-space: nowrap; }
+.site .open:hover { background: #f0f1f2; }
+.site .av { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 600; }
+.site .av.lg { width: 32px; height: 32px; font-size: 12px; }
+.site .av.sq { width: 36px; height: 36px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+
+/* rich text (shared structure, per-site look below) */
+.site .rich > * + * { margin-top: 0.5em; }
+.site .rich p, .site .rich h2, .site .rich h3, .site .rich h4 { margin: 0; }
+.site .rich h2, .site .rich h3, .site .rich h4 { margin-top: 1.1em; }
+.site .rich > :first-child { margin-top: 0; }
+.site .bli { display: flex; gap: 6px; align-items: flex-start; margin-top: 0.25em !important; }
+.site .bli .mk { flex: none; width: 18px; }
+.site .bli.done > div { color: #7d7a75; }
+.site .todo { flex: none; width: 15px; height: 15px; margin-top: 0.3em; border: 1.5px solid #8c8f97; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; }
+.site .todo.on { background: #1868db; border-color: #1868db; }
+.site .bcode { margin: 0; padding: 10px 12px; overflow-x: auto; font-family: var(--mono, "SFMono-Regular", Menlo, monospace); font-size: 0.86em; line-height: 1.6; white-space: pre; }
+.site blockquote { margin: 0; padding-left: 12px; }
+.site hr { border: 0; height: 1px; margin: 12px 0; }
+.site .btable-wrap { overflow-x: auto; }
+.site .btable { border-collapse: collapse; width: 100%; font-size: 0.93em; }
+.site .btable td { padding: 6px 9px; vertical-align: top; min-width: 80px; }
+.site .bcallout { display: flex; gap: 10px; padding: 14px; }
+.site .bcallout .ci { flex: none; font-size: 1.2em; }
+.site .bcallout .rich { flex: 1; min-width: 0; }
+.site .btoggle { display: flex; gap: 6px; }
+.site .btoggle > span { font-size: 0.65em; padding-top: 0.5em; }
+.site .bembed { display: block; padding: 7px 10px; border-radius: 4px; font-size: 0.93em; }
+.site .bmore { font-size: 12px; opacity: 0.7; }
+
+/* ---------- Jira ---------- */
+.site.jira { --jt: #292a2e; --jd: #505258; --js: #6b6e76; --jl: #1868db; --jb: #dddee1; color: var(--jt); font: 14px/1.714 "Atlassian Sans", ui-sans-serif, -apple-system, "system-ui", "Segoe UI", Ubuntu, sans-serif; }
+.jira a { color: var(--jl); }
+.jira .rich a { text-decoration: underline; }
+.jira .rich code { padding: 2px 4px; border-radius: 3px; background: #f0f1f2; font-family: var(--mono, "SFMono-Regular", Menlo, monospace); font-size: 12px; }
+.jira .rich .bh1 { font-size: 20px; line-height: 24px; font-weight: 600; }
+.jira .rich .bh2 { font-size: 16px; line-height: 20px; font-weight: 600; }
+.jira .rich .bh3 { font-size: 14px; font-weight: 600; }
+.jira .bcode { background: #f8f8f8; border: 1px solid var(--jb); border-radius: 4px; }
+.jira blockquote { border-left: 2px solid var(--jb); color: var(--jd); }
+.jira hr { background: var(--jb); }
+.jira .btable td { border: 1px solid var(--jb); }
+.jira .btable.head tr:first-child td { background: #f8f8f8; font-weight: 600; }
+.jira .bcallout { background: #e9f2fe; border-radius: 4px; }
+.jira .bembed { background: #f8f8f8; color: var(--jd); }
+.jira .mention { padding: 0 3px; border-radius: 10px; background: #e9f2fe; color: #1558bc; }
+.jcrumbs { display: flex; align-items: center; gap: 7px; color: var(--jd); min-width: 0; }
+.jcrumbs i { font-style: normal; color: var(--js); }
+.jcrumbs a { color: var(--jd); }
+.jcrumbs a:hover { text-decoration: underline; }
+.jt-ico { flex: none; display: inline-flex; }
+.jissue { display: flex; gap: 28px; padding: 10px 24px 26px; align-items: flex-start; flex-wrap: wrap; }
+.jmain { flex: 1 1 420px; min-width: 0; }
+.jmain h1 { margin: 6px 0 14px; font-size: 24px; line-height: 28px; font-weight: 653; }
+.jsec { margin: 22px 0 8px; font-size: 16px; line-height: 20px; font-weight: 653; }
+.jside { flex: 0 1 320px; min-width: 260px; display: flex; flex-direction: column; gap: 12px; }
+.jpanel { border: 1px solid var(--jb); border-radius: 8px; padding: 12px 16px 8px; }
+.jpanel h4 { margin: 0 0 4px; font-size: 16px; font-weight: 653; }
+.jf { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.jf .k { flex: none; width: 110px; font-weight: 500; }
+.jf .v { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.jira .who { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.jparent { display: inline-flex; gap: 5px; min-width: 0; max-width: 100%; padding: 0 6px; border: 1px solid #d8a0f7; border-radius: 3px; background: #f8eefe; color: #48245d !important; font-size: 13px; line-height: 20px; }
+.jdate { padding: 1px 6px; border: 1px solid var(--jb); border-radius: 3px; }
+.jprio { font-weight: 700; color: #e56910; }
+.jprio.High, .jprio.Highest { color: #c9372c; }
+.jprio.Low, .jprio.Lowest { color: #1868db; }
+.jlabel { padding: 0 5px; border-radius: 3px; background: #f0f1f2; font-size: 12px; line-height: 20px; }
+.jdim { color: var(--js); }
+.loz { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px; border-radius: 3px; border: 1px solid #b7b9be; background: #f0f1f2; color: #292a2e; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; }
+.loz.progress { background: #cfe1fd; border-color: #8fb8f6; color: #123263; }
+.loz.done { background: #d3f1a7; border-color: #b3df72; color: #37471f; }
+.loz.btn { padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; line-height: 22px; }
+.loz i { font-style: normal; font-size: 10px; }
+.jnotice { margin-bottom: 8px; padding: 8px 12px; border-radius: 6px; background: #efffd6; font-size: 13px; }
+.jnotice.wait { background: #fff5db; }
+.jcomment { display: flex; gap: 10px; margin-top: 14px; }
+.jc-h { display: flex; gap: 8px; align-items: baseline; margin-bottom: 2px; }
+.jc-h span { font-size: 12px; color: var(--js); }
+.jpad { padding: 6px 24px 22px; }
+.jtrans { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.jlist { padding: 18px 24px 22px; }
+.jl-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.jl-h h1 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 653; }
+.jql { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; padding: 7px 10px; border: 1px solid #8c8f97; border-radius: 4px; }
+.jql span { flex: none; padding: 0 5px; border-radius: 3px; background: #e9f2fe; color: #1558bc; font-size: 12px; font-weight: 600; line-height: 20px; }
+.jql code { flex: 1; min-width: 0; font-family: var(--mono, "SFMono-Regular", Menlo, monospace); font-size: 12.5px; line-height: 20px; overflow-wrap: anywhere; }
+.jtable-wrap { border: 1px solid var(--jb); border-radius: 12px; overflow-x: auto; }
+.jtable { width: 100%; border-collapse: collapse; }
+.jtable th { height: 40px; padding: 0 8px; text-align: left; background: #f8f8f8; color: var(--jd); font-size: 12px; font-weight: 653; white-space: nowrap; }
+.jtable td { height: 44px; padding: 0 8px; border-top: 1px solid var(--jb); white-space: nowrap; }
+.jtable tbody tr:hover td { background: #f8f8f8; }
+.jwork { display: flex; align-items: center; gap: 8px; min-width: 220px; max-width: 640px; }
+.jwork a { flex: none; text-decoration: underline; }
+.jfoot { height: 40px; display: flex; align-items: center; justify-content: center; border-top: 1px solid var(--jb); color: var(--jl); font-size: 13px; }
+
+/* ---------- Notion ---------- */
+.site.notion { --nt: #2c2c2b; --nd: #7d7a75; --nb: #e9e9e7; border-color: var(--nb); color: var(--nt); font: 16px/1.5 ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, sans-serif; }
+.notion .site-top { padding: 0 14px; font-size: 14px; }
+.notion .open { border-color: var(--nb); border-radius: 6px; }
+.notion .open:hover { background: #f1f1ef; }
+.ncrumbs { min-width: 0; }
+.ncrumbs i { font-style: normal; margin: 0 6px; color: #b4b3af; }
+.npage { max-width: 760px; margin: 0 auto; padding: 34px 48px 48px; }
+.npage h1 { margin: 0 0 10px; font-size: 40px; line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
+.nicon { font-size: 64px; line-height: 1.1; margin-bottom: 6px; }
+.nprops { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 4px 8px; margin: 6px 0 4px; font-size: 14px; line-height: 1.5; }
+.nprops .k { color: var(--nd); padding: 5px 0; }
+.nprops .v { padding: 5px 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; min-width: 0; overflow-wrap: anywhere; }
+.notion a { color: inherit; text-decoration: underline; text-decoration-color: #b4b3af; }
+.notion .rich code, .nprops code, .nres code { padding: 0.2em 0.4em; border-radius: 4px; background: rgba(33, 27, 23, 0.05); color: #cf5148; font-family: SFMono-Regular, Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; font-size: 85%; }
+.notion .rich .bh1 { font-size: 1.875em; line-height: 1.3; font-weight: 600; margin-top: 1.4em; }
+.notion .rich .bh2 { font-size: 1.5em; line-height: 1.3; font-weight: 600; }
+.notion .rich .bh3 { font-size: 1.25em; line-height: 1.3; font-weight: 600; }
+.notion .bcode { background: #f7f6f3; border-radius: 10px; padding: 18px 20px; font-family: SFMono-Regular, Menlo, Consolas, monospace; }
+.notion blockquote { border-left: 3px solid var(--nt); padding-left: 14px; }
+.notion hr { background: var(--nb); }
+.notion .btable td { border: 1px solid var(--nb); }
+.notion .btable.head tr:first-child td { background: #f7f6f3; font-weight: 500; }
+.notion .bcallout { border-radius: 10px; padding: 16px 18px; background: #f1f1ef; }
+.notion .bcallout.blue_bg { background: #e7f3f8; } .notion .bcallout.yellow_bg { background: #fbf3db; } .notion .bcallout.red_bg { background: #fdebec; }
+.notion .bcallout.green_bg { background: #edf3ec; } .notion .bcallout.orange_bg { background: #fbecdd; } .notion .bcallout.purple_bg { background: #f4f0f7; }
+.notion .bcallout.pink_bg { background: #f9eef3; } .notion .bcallout.brown_bg { background: #f4eeee; }
+.notion .bembed { background: #f7f6f3; color: var(--nd); text-decoration: none; }
+.notion .mention { color: inherit; }
+.notion .mention.user { color: var(--nd); }
+.ndim { color: var(--nd); font-size: 14px; }
+.ncheck { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border: 1.5px solid #c7c6c4; border-radius: 3px; font-size: 10px; color: #fff; }
+.ncheck.on { background: #2383e2; border-color: #2383e2; }
+.ntag { display: inline-block; max-width: 240px; padding: 0 6px; border-radius: 3px; font-size: 14px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nempty { color: #b4b3af; }
+.nviews { display: flex; gap: 14px; margin: 8px 0; font-size: 14px; color: var(--nd); }
+.nviews .on { color: var(--nt); font-weight: 600; }
+.ncols > div { display: flex; gap: 10px; height: 34px; align-items: center; border-bottom: 1px solid var(--nb); font-size: 14px; }
+.ncols { border-top: 1px solid var(--nb); }
+.nsearch-h { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border-bottom: 1px solid var(--nb); font-size: 18px; }
+.nsearch-h b { font-weight: 400; }
+.nresults { padding: 6px; }
+.nres { display: flex; gap: 10px; padding: 8px 10px; border-radius: 6px; text-decoration: none !important; }
+.nres:hover { background: #f1f1ef; }
+.nres .t { display: block; font-size: 14px; font-weight: 500; }
+.nres .p { display: block; font-size: 12px; color: var(--nd); }
+.nres .h { display: block; font-size: 12.5px; line-height: 1.45; color: var(--nd); }
+.nres .d { flex: none; font-size: 12px; color: var(--nd); }
+.ntable-wrap { overflow-x: auto; padding: 0 14px 16px; }
+.ntable { border-collapse: collapse; font-size: 14px; }
+.ntable th { height: 34px; padding: 0 8px; text-align: left; font-weight: 400; color: var(--nd); white-space: nowrap; border-top: 1px solid var(--nb); border-bottom: 1px solid var(--nb); border-right: 1px solid var(--nb); }
+.ntable td { min-width: 70px; max-width: 320px; height: 33px; padding: 5px 8px; border-bottom: 1px solid var(--nb); border-right: 1px solid var(--nb); vertical-align: top; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nnotice { margin-bottom: 14px; padding: 8px 12px; border-radius: 6px; background: #edf3ec; font-size: 13px; }
+.nnotice.wait { background: #fbf3db; } .nnotice.bad { background: #fdebec; }
+.nedit { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.nedit .was { padding: 8px 10px; border-radius: 6px; background: #fdebec; opacity: 0.85; }
+.nedit .now { padding: 8px 10px; border-radius: 6px; background: #edf3ec; }
+.nmade + .nmade { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--nb); }
+.nmade-h { display: flex; gap: 8px; align-items: center; }
+.nmade-h h2 { flex: 1; min-width: 0; margin: 0; font-size: 18px; font-weight: 700; }
+.nmade-h h2.big { font-size: 30px; }
+
+/* ---------- Slack ---------- */
+.site.slack { --st: #1d1c1d; --sd: #616061; --sb: #ddd; border-color: var(--sb); color: var(--st); font: 15px/1.46668 Slack-Lato, Slack-Fractions, appleLogo, Lato, -apple-system, "system-ui", sans-serif; }
+.shead { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 20px; border-bottom: 1px solid var(--sb); }
+.shead b { font-size: 18px; font-weight: 900; }
+.shead span { min-width: 0; font-size: 13px; color: var(--sd); }
+.slist { padding: 8px 0 12px; }
+.smsg { display: flex; gap: 8px; padding: 8px 20px; }
+.smsg:hover { background: #f8f8f8; }
+.sm-h { display: flex; gap: 8px; align-items: baseline; }
+.sm-h b { font-weight: 900; }
+.sm-h .ts { font-size: 12px; color: var(--sd); }
+.sm-h .app { align-self: center; padding: 0 3px; border-radius: 2px; background: #ebebeb; color: var(--sd); font-size: 10px; font-weight: 700; line-height: 15px; }
+.slack a { color: #1264a3; }
+.slack a:hover { text-decoration: underline; }
+.slack .rich > * + * { margin-top: 0.25em; }
+.slack .rich code { padding: 2px 3px 1px; border: 1px solid #ddd; border-radius: 3px; background: rgba(29, 28, 29, 0.04); color: #c01343; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; }
+.slack .bcode { border: 1px solid #ddd; border-radius: 4px; background: #f8f8f8; font-size: 12px; white-space: pre-wrap; }
+.slack blockquote { border-left: 4px solid #ddd; }
+.slack .mention { padding: 0 2px 1px; border-radius: 3px; background: rgba(29, 155, 209, 0.1); color: #1264a3; }
+.slack .rich .bh1, .slack .rich .bh2, .slack .rich .bh3 { font-size: 15px; font-weight: 900; }
+.slack .bembed { background: #f8f8f8; color: var(--sd); }
+.sdim { font-size: 12px; color: var(--sd); margin-top: 2px; }
+.sreact { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.sreact span { padding: 0 7px; border-radius: 12px; background: #efefef; font-size: 12px; line-height: 24px; }
+.sreplies { margin-top: 4px; font-size: 13px; font-weight: 700; color: #1264a3; }
+.sdivider { display: flex; align-items: center; gap: 10px; padding: 6px 20px; font-size: 13px; color: var(--sd); }
+.sdivider i { flex: 1; height: 1px; background: var(--sb); }
+.sbox { display: flex; align-items: center; gap: 8px; height: 36px; margin: 12px 20px 0; padding: 0 12px; border: 1px solid #bbbabb; border-radius: 8px; }
+.scount { padding: 12px 20px 4px; font-size: 13px; font-weight: 700; color: var(--sd); }
+.scards { display: flex; flex-direction: column; gap: 10px; padding: 6px 20px 18px; }
+.scard { border: 1px solid var(--sb); border-radius: 12px; overflow: hidden; }
+.scard .sch { padding: 10px 20px 0; font-size: 13px; font-weight: 700; color: var(--sd); }

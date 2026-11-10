@@ -1,0 +1,482 @@
+/* ---------- Syntax tokens (herdr ansi palette) ---------- */
+.tk-kw { color: var(--ansi5); }
+.tk-str { color: var(--ansi2); }
+.tk-num { color: var(--ansi3); }
+.tk-fn { color: var(--ansi4); }
+.tk-type { color: var(--ansi6); }
+.tk-com { color: var(--ansi8); font-style: italic; }
+.tk-prop { color: var(--ansi1); }
+.tk-key { color: var(--ansi12); }
+.tk-tag { color: var(--ansi1); }
+.tk-attr { color: var(--ansi3); }
+.tk-op { color: var(--ansi6); }
+.tk-pun { color: #9a9ca3; }
+.tk-var { color: var(--ansi14); }
+.tk-flag { color: var(--ansi12); }
+.tk-cmd { color: var(--foreground); font-weight: 700; }
+.tk-dollar { color: var(--ansi13); font-weight: 600; }
+.tk-head { color: var(--ansi4); font-weight: 700; }
+.tk-bold { color: var(--foreground); font-weight: 700; }
+.tk-code { color: var(--ansi11); }
+.tk-link { color: var(--ansi12); text-decoration: underline; text-underline-offset: 2px; }
+.tk-dim { color: var(--dim); }
+.tk-esc { color: var(--ansi11); }
+.tk-quant { color: var(--ansi3); font-weight: 600; }
+.tk-group { color: var(--ansi13); }
+.tk-class { color: var(--ansi6); }
+.tk-anchor { color: var(--ansi1); }
+.tk-jqlf { color: var(--ansi12); }
+.tk-jqlk { color: var(--ansi5); font-weight: 600; }
+
+/* ---------- Code view (line-numbered) ---------- */
+.code {
+  position: relative;
+  font-family: var(--mono);
+  font-size: var(--fs-code);
+  line-height: var(--lh-code);
+  font-variant-ligatures: none;
+  tab-size: 2;
+  overflow: auto;
+  background: var(--background);
+}
+
+.code-in {
+  display: table;
+  min-width: 100%;
+  padding: 8px 0;
+}
+
+.cl {
+  display: table-row;
+}
+
+.cl > span {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.cl .ln {
+  width: 1%;
+  min-width: 44px;
+  padding: 0 12px 0 14px;
+  text-align: right;
+  color: var(--faint);
+  user-select: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cl .gm {
+  width: 3px;
+  padding: 0;
+}
+
+.cl .tx {
+  padding: 0 18px 0 12px;
+  white-space: pre;
+}
+
+.code.wrap .cl .tx {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cl.in-range .ln {
+  color: var(--muted);
+}
+
+.cl.out-range .tx {
+  opacity: 0.38;
+}
+
+.cl.hit {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.cl.g-add .gm {
+  background: var(--add);
+}
+
+.cl.g-mod .gm {
+  background: var(--mod);
+}
+
+.cl.g-del .gm {
+  background: linear-gradient(var(--del), var(--del)) no-repeat 0 100% / 100% 3px;
+}
+
+/* ---------- Diff rows ---------- */
+.diff {
+  font-family: var(--mono);
+  font-size: var(--fs-code);
+  line-height: var(--lh-code);
+  font-variant-ligatures: none;
+  tab-size: 2;
+  overflow: auto;
+  background: var(--background);
+}
+
+.diff-in {
+  display: table;
+  min-width: 100%;
+  padding: 6px 0;
+}
+
+.dl {
+  display: table-row;
+}
+
+.dl > span {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.dl .ln {
+  width: 1%;
+  min-width: 40px;
+  padding: 0 8px;
+  text-align: right;
+  color: var(--faint);
+  user-select: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.dl .mk {
+  width: 1%;
+  padding: 0 6px 0 4px;
+  user-select: none;
+  color: var(--faint);
+}
+
+.dl .tx {
+  padding: 0 18px 0 2px;
+  white-space: pre;
+}
+
+.diff.wrap .dl .tx {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dl.add {
+  background: var(--add-bg);
+}
+
+.dl.add .ln {
+  background: var(--add-gutter);
+  color: #9ad79d;
+}
+
+.dl.add .mk {
+  color: #7fcf86;
+}
+
+.dl.del {
+  background: var(--del-bg);
+}
+
+.dl.del .ln {
+  background: var(--del-gutter);
+  color: #f2a29b;
+}
+
+.dl.del .mk {
+  color: #ff8a80;
+}
+
+.dl mark {
+  color: inherit;
+  border-radius: 3px;
+  padding: 1px 0;
+}
+
+.dl.add mark {
+  background: var(--add-strong);
+}
+
+.dl.del mark {
+  background: var(--del-strong);
+}
+
+.dl.hunk > span {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--dim);
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.dl.hunk .tx {
+  color: color-mix(in srgb, var(--accent) 75%, var(--dim));
+}
+
+.dl.fold > span {
+  background: #ffffff05;
+  color: var(--dim);
+}
+
+.dl.fold button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-family: var(--ui);
+  font-size: var(--fs-xs);
+  padding: 1px 0;
+}
+
+.dl.fold button:hover {
+  text-decoration: underline;
+}
+
+/* Split view */
+.diff.diff-split .diff-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: 0;
+}
+
+.sd {
+  display: grid;
+  grid-template-columns: auto 18px minmax(0, 1fr);
+  min-height: var(--lh-code);
+}
+
+.sd .ln {
+  min-width: 40px;
+  padding: 0 8px;
+  text-align: right;
+  color: var(--faint);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.sd .mk {
+  color: var(--faint);
+  user-select: none;
+}
+
+.sd .tx {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-right: 12px;
+}
+
+.sd.left {
+  border-right: 1px solid var(--border);
+}
+
+.sd.add {
+  background: var(--add-bg);
+}
+
+.sd.add .mk {
+  color: #7fcf86;
+}
+
+.sd.del {
+  background: var(--del-bg);
+}
+
+.sd.del .mk {
+  color: #ff8a80;
+}
+
+.sd.blank {
+  background: repeating-linear-gradient(135deg, #ffffff04 0 4px, transparent 4px 8px);
+}
+
+.sd.add mark {
+  background: var(--add-strong);
+  color: inherit;
+  border-radius: 3px;
+}
+
+.sd.del mark {
+  background: var(--del-strong);
+  color: inherit;
+  border-radius: 3px;
+}
+
+.sd.hunk {
+  grid-column: 1 / -1;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: color-mix(in srgb, var(--accent) 75%, var(--dim));
+  padding: 2px 12px;
+  display: block;
+}
+
+.sd.fold {
+  grid-column: 1 / -1;
+  display: block;
+  padding: 2px 12px;
+  background: #ffffff05;
+}
+
+.sd.fold button {
+  color: var(--accent);
+  font-family: var(--ui);
+  font-size: var(--fs-xs);
+}
+
+/* Markdown document (rendered) */
+.md {
+  font-size: var(--fs);
+  line-height: 1.65;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  color: var(--foreground);
+  margin: 1.1em 0 0.45em;
+  line-height: 1.3;
+}
+
+.md h1 {
+  font-size: 19px;
+}
+
+.md h2 {
+  font-size: 17px;
+}
+
+.md h3 {
+  font-size: 15px;
+}
+
+.md h4 {
+  font-size: 14px;
+}
+
+.md p {
+  margin: 0.45em 0;
+}
+
+.md ul,
+.md ol {
+  margin: 0.4em 0;
+  padding-left: 1.4em;
+}
+
+.md li {
+  margin: 0.22em 0;
+}
+
+.md li.task {
+  list-style: none;
+  margin-left: -1.3em;
+  display: flex;
+  gap: 8px;
+}
+
+.md li.task .cbx {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 4px;
+  border-radius: 4px;
+  border: 1.5px solid var(--input);
+  display: grid;
+  place-items: center;
+}
+
+.md li.task.on .cbx {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.md li.task.on .tlbl {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+
+.md code {
+  font-size: 0.88em;
+  background: #ffffff0e;
+  color: var(--foreground);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+
+.md pre {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin: 0.6em 0;
+}
+
+.md pre code {
+  background: none;
+  padding: 0;
+}
+
+.md blockquote {
+  margin: 0.6em 0;
+  padding: 2px 12px;
+  border-left: 3px solid var(--input);
+  color: var(--dim);
+}
+
+.md table {
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  font-size: var(--fs-sm);
+}
+
+.md th,
+.md td {
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  text-align: left;
+}
+
+.md th {
+  color: var(--foreground);
+  background: #ffffff07;
+}
+
+.md strong {
+  color: var(--foreground);
+}
+
+.md a sup {
+  color: var(--dim);
+  margin-left: 1px;
+}
+
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+.md .ln-mark {
+  display: block;
+  margin: 0 -14px;
+  padding: 0 14px;
+}
+
+.md-range {
+  position: relative;
+  margin: 0 -16px;
+  padding: 2px 16px 6px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.md-out {
+  opacity: 0.4;
+}

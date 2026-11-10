@@ -1,0 +1,136 @@
+/* Token names are herdr-app's theme() names, so a mod can use the same ones.
+   Values: graphite / ink / moss from `themes()`. muted and dim are brighter than
+   herdr's defaults: this setup overrides them toward white, so gray-on-dark stays readable. */
+:root {
+  color-scheme: dark;
+  --ui: "Geist", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Geist Mono", ui-monospace, "SF Mono", Menlo, "Apple SD Gothic Neo", monospace;
+
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs: 14px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 21px;
+  --fs-code: 13px;
+  --lh-code: 21px;
+
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r: 8px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --rail-w: 272px;
+  --list-w: 392px;
+}
+
+:root,
+[data-theme="graphite"] {
+  --background: #17191d;
+  --canvas: #131518;
+  --chrome: #101114;
+  --surface: #17191d;
+  --popover: #25272b;
+  --raised: #2c2e31;
+  --hover: #ffffff0e;
+  --selected: #ffffff17;
+  --border: #ffffff18;
+  --input: #ffffff24;
+  --foreground: #eeeeef;
+  --muted: #bdbfc3;
+  --dim: #8f9297;
+  --faint: #5f6268;
+  --accent: #96b2d7;
+  --accent-foreground: #17191d;
+  --solid: #eeeeef;
+  --solid-foreground: #111215;
+  --selection: #394454;
+  --working: #e5c07b;
+  --blocked: #f0705f;
+  --done: #76a8ff;
+  --idle: #7d8085;
+  --ansi0: #45484f;
+  --ansi1: #dc8c95;
+  --ansi2: #a6bd91;
+  --ansi3: #d8be87;
+  --ansi4: #96b2d7;
+  --ansi5: #b5a2ce;
+  --ansi6: #8cbdc3;
+  --ansi7: #d2d4d9;
+  --ansi8: #818793;
+  --ansi9: #f0a5ad;
+  --ansi10: #bad5a2;
+  --ansi11: #ead2a1;
+  --ansi12: #b0cbef;
+  --ansi13: #cbb7e6;
+  --ansi14: #a4d5db;
+  --ansi15: #f0f0f2;
+}
+
+[data-theme="ink"] {
+  --background: #111720;
+  --canvas: #0e131b;
+  --chrome: #0c1016;
+  --surface: #111720;
+  --popover: #1e252f;
+  --raised: #262c34;
+  --muted: #bcbfc5;
+  --dim: #8c9199;
+  --faint: #5a6069;
+  --accent: #91b6ee;
+  --accent-foreground: #111720;
+  --selection: #2f405a;
+  --idle: #7a8089;
+}
+
+[data-theme="moss"] {
+  --background: #151c19;
+  --canvas: #121815;
+  --chrome: #0e1311;
+  --surface: #151c19;
+  --popover: #222a26;
+  --raised: #2a302e;
+  --muted: #bcc0be;
+  --dim: #8e9491;
+  --faint: #5c625f;
+  --accent: #99b9cd;
+  --accent-foreground: #151c19;
+  --selection: #34463f;
+  --idle: #7c827f;
+}
+
+/* Derived roles, shared by every theme. */
+:root,
+[data-theme] {
+  --k-explore: var(--ansi4);
+  --k-edit: var(--ansi5);
+  --k-shell: var(--ansi2);
+  --k-web: var(--ansi6);
+  --k-agent: var(--ansi7);
+  --k-mcp: #e2a5c6;
+  --k-mongo: #00ed64;
+
+  --add: #57ab5a;
+  --add-bg: rgba(87, 171, 90, 0.14);
+  --add-strong: rgba(87, 171, 90, 0.42);
+  --add-gutter: rgba(87, 171, 90, 0.22);
+  --del: #e5534b;
+  --del-bg: rgba(229, 83, 75, 0.13);
+  --del-strong: rgba(229, 83, 75, 0.42);
+  --del-gutter: rgba(229, 83, 75, 0.2);
+  --mod: #d9b86c;
+
+  /* Compass dark theme's type colours (as herdr-island uses them). */
+  --bson-oid: #ff6f44;
+  --bson-str: #35de7b;
+  --bson-num: #2dc4ff;
+  --bson-date: #2dc4ff;
+  --bson-bool: #ff7dc3;
+  --bson-null: #889397;
+
+  --shadow-pop: 0 18px 48px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --stripes: repeating-linear-gradient(135deg, #ffffff06 0 6px, transparent 6px 12px);
+}
