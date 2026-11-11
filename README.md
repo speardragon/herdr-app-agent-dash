@@ -59,10 +59,39 @@ browser.
 Ask your agent in the Herdr app to add this mod from this repo. Or copy it by hand:
 
 1. Copy `mods/agent-dash/` to `~/.config/herdr-app/mods/`.
-2. Add the key from `keys.json` to the `global` section of `~/.config/herdr-app/keys.json`.
-3. Run `herdr-app check ~/.config/herdr-app/mods/agent-dash`.
+2. Add the key from `keys.json` to the `global` section of `~/.config/herdr-app/keys.json`
+   (keep the commas right; pick another key if `cmd-shift-a` is already taken):
 
+   ```json
+   { "global": { "cmd-shift-a": "mod.open:agent-dash" } }
+   ```
+
+3. Run `herdr-app check ~/.config/herdr-app/mods/agent-dash`. It should print `check passed`.
+
+The app loads the mod by itself (no restart). Press `cmd+shift+a` to open it, `esc` to close.
 It needs `python3` (standard library only) and `hc` (herdr-core) on `PATH`.
+
+**Update:** copy `mods/agent-dash/` over the installed folder again. Your `.me/` picture and the
+other folders the mod made stay. The web page's server restarts itself the next time you press
+"웹에서 열기".
+
+## Uninstall
+
+1. Stop the web page's server if it is running: `hc kill agent-dash-web`.
+2. Remove the key line (`"cmd-shift-a": "mod.open:agent-dash"`) from
+   `~/.config/herdr-app/keys.json`.
+3. Delete the folder: `rm -rf ~/.config/herdr-app/mods/agent-dash`.
+
+Step 3 also removes everything the mod made (`.cache/`, `.me/`, `.web/`). It writes nothing
+outside its own folder, except two small things the app and the browser keep for it:
+
+- The app remembers the rail grouping and the "포커스" switch in
+  `~/.config/herdr-app/data/agent-dash/`. To forget them too:
+  `rm -rf ~/.config/herdr-app/data/agent-dash`.
+- The browser keeps the web page's column widths and a few preferences (at `127.0.0.1`). Clear
+  that site's data if you want them gone.
+
+Old `keys.json.bak-*` files the app made still mention the key; they do nothing.
 
 ## What it reads and runs
 
@@ -73,8 +102,9 @@ Read this before you install it. The mod works on your conversation history.
   `~/.codex/sessions`. It also reads the files an agent changed, to draw diffs.
 - **Runs** `python3` (its own `bin/transcript.py`), `hc ls` / `hc get` to find sub-agents,
   and `git show` for the committed version of a changed file.
-- **Writes** only inside its own folder: `.cache/` (copies of images an agent read) and
-  `.web/` (the web server's port and token).
+- **Writes** only inside its own folder: `.cache/` (copies of images an agent read and of
+  pictures you attached to prompts), `.me/` (your avatar) and `.web/` (the web server's port,
+  token and the spaces it shows).
 - **Network:** the mod makes one request, once: your avatar for the prompt chat view
   (below). The optional local web page loads its fonts from Google Fonts when you open it.
 - **Your avatar:** the prompt chat view shows your picture. It is fetched once from GitHub for
