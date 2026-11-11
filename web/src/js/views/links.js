@@ -72,8 +72,8 @@ function linkDetail(l, list) {
       <button class="btn ghost sm" data-action="open-prompt" data-agent="${l.agent}" data-prompt="${l.turn}">${mine ? "이 프롬프트 보기" : "이 답변의 프롬프트"} ${icon("arrow-right", 12)}</button></div>
     <div class="ld-label">주소 뜯어보기</div>
     ${urlAnatomy(l.url)}
-    ${siblings.length ? html`<div class="ld-label">${mine ? "같은 프롬프트의 다른 링크" : "같은 답변의 다른 링크"}</div><div class="chips">${siblings.map((x) => html`<button class="chip" data-action="select-link" data-key="${l.agent}:${mine ? `p${l.srcN}` : l.reply}:${x.n}">${fav(x.url, 14)} [${x.n}] ${x.title}</button>`)}</div>` : ""}
-    ${sameHost.length ? html`<div class="ld-label">${hostOf(l.url)}의 다른 링크 ${sameHost.length}개</div><div class="chips">${sameHost.map((x) => html`<button class="chip" data-action="select-link" data-key="${x.key}">${x.title}</button>`)}</div>` : ""}
+    ${siblings.length ? html`<div class="ld-label">${mine ? "같은 프롬프트의 다른 링크" : "같은 답변의 다른 링크"}</div><div class="chips">${siblings.map((x) => html`<button class="chip" data-action="select-link" data-key="${l.agent}:${mine ? `p${l.srcN}` : l.reply}:${x.n}">${fav(x.url, 14)} <span class="chip-t">[${x.n}] ${x.title}</span></button>`)}</div>` : ""}
+    ${sameHost.length ? html`<div class="ld-label">${hostOf(l.url)}의 다른 링크 ${sameHost.length}개</div><div class="chips">${sameHost.map((x) => html`<button class="chip" data-action="select-link" data-key="${x.key}"><span class="chip-t">${x.title}</span></button>`)}</div>` : ""}
   </div>`;
 }
 
@@ -104,7 +104,7 @@ function linksLens() {
           ([id, label]) => html`<button data-action="ui-set" data-key="links:from" data-value="${id}" aria-pressed="${from === id}">${label}</button>`,
         )}</div>
         ${domains.length > 1 ? html`<div class="chips"><button class="chip" data-action="link-domain" data-domain="all" aria-pressed="${STATE.linkDomain === "all"}">전체 <span class="count">${base.length}</span></button>${domains.map(
-          ([d, ls]) => html`<button class="chip" data-action="link-domain" data-domain="${d}" aria-pressed="${STATE.linkDomain === d}">${fav(`https://${d}`, 13)} ${d} <span class="count">${ls.length}</span></button>`,
+          ([d, ls]) => html`<button class="chip" data-action="link-domain" data-domain="${d}" aria-pressed="${STATE.linkDomain === d}">${fav(`https://${d}`, 13)} <span class="chip-t">${d}</span> <span class="count">${ls.length}</span></button>`,
         )}</div>` : ""}
       </div>
       <div class="list-body" role="listbox" aria-label="링크" data-keep-scroll="links-${esc(scopeKey())}">${body}</div>

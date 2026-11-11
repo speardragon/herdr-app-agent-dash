@@ -467,8 +467,8 @@
   gap: 9px;
   width: 100%;
   min-height: 46px;
-  padding: 6px 9px;
-  border-radius: 7px;
+  padding: 6px 16px;
+  border-radius: 0;
   text-align: left;
   position: relative;
 }
@@ -484,7 +484,7 @@
 .link-row[aria-selected="true"]::before {
   content: "";
   position: absolute;
-  left: -6px;
+  left: 0;
   top: 9px;
   bottom: 9px;
   width: 3px;
@@ -686,8 +686,8 @@
   align-items: center;
   width: 100%;
   min-height: 36px;
-  padding: 6px 9px;
-  border-radius: 7px;
+  padding: 6px 16px;
+  border-radius: 0;
   text-align: left;
   position: relative;
   font-size: var(--fs-sm);
@@ -704,7 +704,7 @@
 .prompt-row[aria-selected="true"]::before {
   content: "";
   position: absolute;
-  left: -6px;
+  left: 0;
   top: 8px;
   bottom: 8px;
   width: 3px;

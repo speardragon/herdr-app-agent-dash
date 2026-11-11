@@ -46,7 +46,7 @@ export function callRow(item, selected, t, rel) {
   const mongo = isMongo(call);
   const color = kindColor(t, kind, mongo);
   const text = rowText(call, rel);
-  return h_flex().id(item.key ?? `row-${call.id}`).w_full().h(ROW_H).flex_none().gap(8).items_center().pr(10).rounded(6)
+  return h_flex().id(item.key ?? `row-${call.id}`).w_full().h(ROW_H).flex_none().gap(8).items_center().pl(8).pr(16)
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .child(div().w(3).h(18).flex_none().rounded(2).bg(selected ? t.accent : alpha(t.accent, 0)))
@@ -64,7 +64,7 @@ function turnRow(item, t) {
   const quiet = !p || p.kind === "notice" || p.kind === "answer";
   const tone = quiet ? t.dim : t.accent;
   const label = p ? firstLine(p.display ?? p.text) || (p.images ? `이미지 ${p.images}개` : "") : "프롬프트 전";
-  return v_flex().w_full().h(TURN_H).flex_none().justify_end().pb(4)
+  return v_flex().w_full().h(TURN_H).flex_none().justify_end().pb(4).px(6)
     .child(h_flex().w_full().h(32).flex_none().gap(8).items_center().pr(10).rounded(7).overflow_hidden()
       .bg(alpha(tone, quiet ? 0.05 : 0.09))
       .child(div().w(3).h_full().flex_none().bg(alpha(tone, quiet ? 0.4 : 0.85)))
@@ -100,7 +100,7 @@ export function callsLens(ctx, t) {
       .child(div().flex_1().min_w(0).child(kindChips(ctx.counts, ctx.kind, ctx.onKind, t)))
       .child(button("follow", ctx.follow ? "따라가는 중" : "따라가기", ctx.onFollow, t, { iconName: ctx.follow ? "zap" : "arrow-down", quiet: !ctx.follow, tip: "새 호출이 들어오면 자동으로 골라요 (f)" })))
     .child(items.length
-      ? div().flex_1().min_h(0).relative().px(6)
+      ? div().flex_1().min_h(0).relative()
         .child(v_virtual_list("call-list", items.length, sizes, (i) => items[i].key, (range) =>
           items.slice(range.start, range.end).map((it) => (it.type === "turn" ? turnRow(it, t) : callRow(it, it.key === ctx.selectedKey, t, ctx.rel))))
           .track_scroll(ctx.scrollHandle).on_item_click((key, cx) => ctx.onPick(key, cx)).size_full())

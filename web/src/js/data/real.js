@@ -4,6 +4,8 @@
 const LIVE = {
   token: takeToken(),
   agents: [],
+  spaces: [],
+  spacesAt: 0,
   sessions: {},
   synced: {},
   busy: new Set(),
@@ -64,7 +66,23 @@ function parseEvents(text) {
   return { events, end };
 }
 
+// Spaces with their logos (the mod writes them when it opens this page); read now and then.
+async function loadSpaces() {
+  if (Date.now() - LIVE.spacesAt < 30000) return false;
+  LIVE.spacesAt = Date.now();
+  try {
+    const body = await (await api("/api/spaces")).json();
+    const next = body.spaces ?? [];
+    const changed = JSON.stringify(next) !== JSON.stringify(LIVE.spaces);
+    LIVE.spaces = next;
+    return changed;
+  } catch {
+    return false;
+  }
+}
+
 async function loadAgents() {
+  const spacesChanged = await loadSpaces();
   const body = await (await api("/api/agents")).json();
   const before = new Map(LIVE.agents.map((a) => [a.address, a.status]));
   LIVE.agents = body.agents ?? [];
@@ -73,7 +91,7 @@ async function loadAgents() {
     const was = before.get(a.address);
     if (was && was !== a.status) notifyStatus(a);
   }
-  return LIVE.agents.some((a) => before.get(a.address) !== a.status) || before.size !== LIVE.agents.length;
+  return spacesChanged || LIVE.agents.some((a) => before.get(a.address) !== a.status) || before.size !== LIVE.agents.length;
 }
 
 // Same cadence as the herdr mod: the agent on screen often, the rest gently.
@@ -230,7 +248,8 @@ function adaptAgent(a, s) {
   const u = s?.usage ?? { in: 0, out: 0, cr: 0, cw: 0 };
   return {
     id: a.address,
-    title: (a.sub ? a.name || a.title : a.title) || s?.customTitle || s?.title || (a.provider === "codex" ? "Codex" : a.provider === "claude" ? "Claude Code" : a.program || a.address),
+    title: (a.sub ? a.name || a.title : LTR.agentName(a.tab, a.title)) || s?.customTitle || s?.title || (a.provider === "codex" ? "Codex" : a.provider === "claude" ? "Claude Code" : a.program || a.address),
+    summary: a.sub ? "" : a.title || "",
     app: a.provider === "codex" ? "codex" : a.provider === "claude" ? "claude" : a.app || "program",
     address: a.address,
     parent: a.parent ?? null,

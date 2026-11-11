@@ -26,7 +26,7 @@ export function railRows(roster, now = Date.now()) {
 function activity(agent, terminal) {
   const msg = terminal?.report?.msg;
   if (agent.status === "working" && msg) return msg;
-  return `${agent.space_name} › ${agent.tab_name}`;
+  return agent.summary && agent.summary !== agent.title ? agent.summary : `${agent.space_name} › ${agent.tab_name}`;
 }
 
 function since(terminal, now) {
@@ -36,8 +36,8 @@ function since(terminal, now) {
 
 function agentRow(agent, terminal, selected, compact, t, now, onPick) {
   const sub = activity(agent, terminal);
-  const row = h_flex().id(`rail-${agent.address}`).w_full().flex_none().gap(9).items_center().rounded(8).cursor_pointer()
-    .px(compact ? 0 : 8).h(compact ? 40 : 46)
+  const row = h_flex().id(`rail-${agent.address}`).w_full().flex_none().gap(9).items_center().cursor_pointer()
+    .px(compact ? 0 : 16).h(compact ? 40 : 46)
     .when(compact, (e) => e.justify_center())
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
@@ -60,7 +60,7 @@ function agentRow(agent, terminal, selected, compact, t, now, onPick) {
 function subRow(row, selected, compact, t, onPick) {
   const { node } = row;
   const ended = node.state === "ended";
-  const el = h_flex().id(`rail-${node.address}`).w_full().flex_none().items_center().rounded(7).cursor_pointer().h(SUB_H)
+  const el = h_flex().id(`rail-${node.address}`).w_full().flex_none().items_center().pl(8).cursor_pointer().h(SUB_H)
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .on_click((_e, cx) => onPick(node.address, cx));
@@ -110,7 +110,7 @@ function gutter(t, h, { through, tick }) {
 
 function spaceRow(space, mine, open, first, opts, t) {
   const top = mine.reduce((m, r) => ((STATUS_RANK[r.status] ?? 0) > (STATUS_RANK[m] ?? 0) ? r.status : m), null);
-  return h_flex().id(`rail-space-${space.id}`).w_full().h(SPACE_H).flex_none().px(8).gap(9).items_center().rounded(8).cursor_pointer()
+  return h_flex().id(`rail-space-${space.id}`).w_full().h(SPACE_H).flex_none().px(16).gap(9).items_center().cursor_pointer()
     .when(!first, (e) => e.mt(8))
     .hover((s) => s.bg(t.hover))
     .on_click((_e, cx) => opts.onFold(space.id, cx))
@@ -130,7 +130,7 @@ const agentsHead = (count, t) => h_flex().w_full().h(HEAD_H).flex_none().items_c
 
 function spaceAgentRow(agent, terminal, selected, last, t, now, onPick) {
   const idle = agent.status === "idle" && !selected;
-  return h_flex().w_full().h(AGENT_H).flex_none().items_center()
+  return h_flex().w_full().h(AGENT_H).flex_none().items_center().pl(8)
     .child(gutter(t, AGENT_H, { through: !last, tick: true }))
     .child(h_flex().id(`rail-${agent.address}`).flex_1().min_w(0).h(AGENT_H - 1).px(7).gap(8).rounded(7).items_center().cursor_pointer()
       .when(selected, (e) => e.bg(t.selected))
@@ -145,7 +145,7 @@ function spaceAgentRow(agent, terminal, selected, last, t, now, onPick) {
 function spaceSubRow(row, selected, through, t, onPick) {
   const { node } = row;
   const ended = node.state === "ended";
-  return h_flex().w_full().h(SUB_H).flex_none().items_center()
+  return h_flex().w_full().h(SUB_H).flex_none().items_center().pl(8)
     .child(gutter(t, SUB_H, { through, tick: false }))
     .child(h_flex().id(`rail-${node.address}`).flex_1().min_w(0).h(SUB_H - 1).pl(14).pr(7).rounded(7).items_center().cursor_pointer()
       .when(selected, (e) => e.bg(t.selected))
@@ -206,15 +206,15 @@ function groupTabs(group, onGroup, t) {
 
 function groupHeader(status, count, t) {
   const color = status === "idle" ? t.dim : t[status] ?? t.dim;
-  return h_flex().w_full().flex_none().h(26).px(8).mt(6).gap(6).items_center()
+  return h_flex().w_full().flex_none().h(26).px(16).mt(6).gap(6).items_center()
     .child(div().size(6).rounded(3).bg(color))
     .child(div().text_size(11).font_semibold().text_color(t.dim).child(STATUS_LABEL[status] ?? status))
     .child(div().text_size(11).text_color(t.dim).child(String(count)));
 }
 
 function fleetRow(selected, counts, compact, t, onPick) {
-  const row = h_flex().id("rail-all").w_full().flex_none().gap(9).items_center().rounded(8).cursor_pointer()
-    .px(compact ? 0 : 8).h(compact ? 40 : 38)
+  const row = h_flex().id("rail-all").w_full().flex_none().gap(9).items_center().cursor_pointer()
+    .px(compact ? 0 : 16).h(compact ? 40 : 38)
     .when(compact, (e) => e.justify_center())
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
@@ -249,13 +249,13 @@ export function rail(opts, t) {
   }
   const offline = (opts.machines ?? []).filter((m) => m.name && m.layout === "unavailable");
   const subs = Object.values(roster.nodes).filter((n) => n.sub && n.state === "live").length;
-  return v_flex().h_full().flex_none().w(opts.width).bg(t.chrome).border_r(1).border_color(t.border)
+  return v_flex().when(Boolean(opts.width), (e) => e.h_full().flex_none().w(opts.width)).when(!opts.width, (e) => e.size_full()).bg(t.chrome).border_r(1).border_color(t.border)
     .child(h_flex().h(44).flex_none().px(compact ? 0 : 14).gap(8).items_center().when(compact, (e) => e.justify_center())
       .child(icon("layers", 15, t.accent))
       .when(!compact, (e) => e.child(div().text_size(13).font_semibold().text_color(t.foreground).child("에이전트")).child(div().text_size(12).text_color(t.dim).child(String(roster.roots.length)))
         .when(subs > 0, (x) => x.child(div().text_size(11).text_color(t.dim).child(`· 하위 ${subs}`)))))
     .when(!compact && Boolean(opts.onGroup), (e) => e.child(groupTabs(opts.group ?? "status", opts.onGroup, t)))
-    .child(scrollArea("rail-scroll", v_flex().px(compact ? 6 : 8).pb(10).gap(2).children(items)))
+    .child(scrollArea("rail-scroll", v_flex().pb(10).children(items)))
     .when(offline.length > 0 && !compact, (e) => e.child(v_flex().flex_none().p(10).gap(4).border_t(1).border_color(t.border).children(offline.map((m) =>
       h_flex().gap(6).items_center().text_size(11).text_color(t.dim)
         .child(icon("server", 12, t.dim)).child(div().truncate().child(`${m.name} · 연결 필요`))))));

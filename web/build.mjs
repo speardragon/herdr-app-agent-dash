@@ -49,6 +49,7 @@ const JS = [
   "src/js/views/subs.js",
   "src/js/views/concept-a.js",
   "src/js/views/overlays.js",
+  "src/js/resize.js",
   "src/js/app.js",
 ];
 

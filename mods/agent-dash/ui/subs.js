@@ -49,7 +49,7 @@ function treeRow(row, selected, ctx, t, now) {
   const working = node.status === "working";
   const term = ctx.terms?.[node.address];
   const rel = (p) => relPath(p, term?.foreground?.cwd ?? term?.cwd ?? session?.cwd, ctx.home);
-  return h_flex().id(`sub-${node.address}`).w_full().h(ROW_H).flex_none().items_center().pl(8).pr(10).rounded(8).cursor_pointer()
+  return h_flex().id(`sub-${node.address}`).w_full().h(ROW_H).flex_none().items_center().pl(14).pr(16).cursor_pointer()
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .on_click((_e, cx) => ctx.pickSub(node.address, cx))
@@ -74,7 +74,7 @@ function treePane(rows, picked, ctx, t) {
       .child(icon("workflow", 13, t.dim))
       .child(div().text_size(12).font_semibold().text_color(t.muted).child(`하위 에이전트 ${total}`))
       .child(div().text_size(11.5).text_color(t.dim).child(`실행 중 ${live} · 끝남 ${total - live}`)))
-    .child(scrollArea("subs-tree", v_flex().px(6).pb(10).gap(2).children(rows.map((r) => treeRow(r, r.node.address === picked, ctx, t, now)))));
+    .child(scrollArea("subs-tree", v_flex().pb(10).children(rows.map((r) => treeRow(r, r.node.address === picked, ctx, t, now)))));
 }
 
 // ---------- detail ----------

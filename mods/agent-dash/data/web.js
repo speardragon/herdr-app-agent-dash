@@ -2,7 +2,7 @@
 // lens and call. The server runs as a herdr-core terminal (`agent-dash-web`), so `hc ls` shows it
 // and `hc kill agent-dash-web` stops it; it also exits by itself after 30 idle minutes.
 
-import { exec, appHome, readTextFile } from "herdr";
+import { exec, appHome, readTextFile, writeTextFile } from "herdr";
 
 const stateDir = () => `${appHome()}/mods/agent-dash/.web`;
 const WEB_LENS = { overview: "overview", calls: "tools", links: "links", prompts: "prompts", changes: "diffs", subs: "subs" };
@@ -36,6 +36,18 @@ async function startServer() {
   // without herdr-core on PATH, run it detached instead.
   if (viaCore !== null) return;
   await exec("sh", ["-c", 'cd "$1" && nohup python3 server.py >/dev/null 2>&1 &', "sh", bin]);
+}
+
+/** What the web page needs to draw spaces as the app does: id, name, logo and color of each.
+ *  The logos live in the app's shared state, which only the mod can read. */
+export async function writeSpaces(list) {
+  try {
+    const path = `${stateDir()}/spaces.json`;
+    const current = await readTextFile(path).catch(() => null);
+    await writeTextFile(path, JSON.stringify(list), current ?? null);
+  } catch {
+    // the page then draws letters on neutral tiles
+  }
 }
 
 /** The page's address for {scope, lens, call}, starting the server first when it isn't up. */

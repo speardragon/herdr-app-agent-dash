@@ -9,6 +9,7 @@ file contents are served only for files the agent's session changed. Exits after
 without requests; the mod starts it again when needed.
 """
 
+import base64
 import hmac
 import io
 import json
@@ -63,6 +64,37 @@ ENDED_SHOWN_MS = 24 * 3600 * 1000
 def provider_of(app):
     app = (app or "").lower()
     return "claude" if "claude" in app else "codex" if "codex" in app else None
+
+
+APP_HOME = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
+LOGO_DIR = os.path.join(APP_HOME, "ray-sidebar", "logos")
+LOGO_LIMIT = 512 * 1024
+MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml"}
+
+
+def read_spaces():
+    """Spaces the mod wrote (.web/spaces.json), a picked logo image inlined as a data URI.
+    Only files inside the app's logo folder are read."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".web", "spaces.json"), encoding="utf-8") as fh:
+            items = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    out = []
+    for item in items if isinstance(items, list) else []:
+        logo = item.get("logo") if isinstance(item, dict) else None
+        entry = {"id": item.get("id"), "name": item.get("name"), "color": item.get("color"), "text": None, "image": None}
+        if isinstance(logo, dict):
+            entry["text"] = logo.get("text") or logo.get("emoji")
+            rel = logo.get("image")
+            if isinstance(rel, str):
+                full = os.path.realpath(os.path.join(APP_HOME, rel))
+                ext = os.path.splitext(full)[1].lower()
+                if full.startswith(os.path.realpath(LOGO_DIR) + os.sep) and ext in MIME and os.path.isfile(full) and os.path.getsize(full) <= LOGO_LIMIT:
+                    with open(full, "rb") as fh:
+                        entry["image"] = f"data:{MIME[ext]};base64,{base64.b64encode(fh.read()).decode()}"
+        out.append(entry)
+    return out
 
 
 class Agents:
@@ -309,6 +341,8 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(200, fh.read(), kind)
 
     def api(self, path, q):
+        if path == "/api/spaces":
+            return self.json({"spaces": read_spaces()})
         if path == "/api/agents":
             return self.json({"agents": AGENTS.get(), "now": int(time.time() * 1000), "home": os.path.expanduser("~")})
         agent = AGENTS.find(q.get("agent", ""))

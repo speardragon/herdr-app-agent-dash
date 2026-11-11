@@ -12,7 +12,7 @@ function loadPrefs() {
 
 function savePrefs() {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ theme: STATE.theme, railGroup: STATE.railGroup, locale: UI.locale, concept: STATE.concept }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ theme: STATE.theme, railGroup: STATE.railGroup, foldedSpaces: STATE.foldedSpaces, locale: UI.locale, concept: STATE.concept }));
   } catch {
     // Storage can be unavailable (private mode, file:// policies); prefs are a convenience only.
   }
@@ -26,6 +26,7 @@ const STATE = {
   lens: "overview",
   railGroup: PREFS.railGroup === "space" ? "space" : "status",
   railFolded: false,
+  foldedSpaces: PREFS.foldedSpaces && typeof PREFS.foldedSpaces === "object" ? PREFS.foldedSpaces : {},
   theme: ["graphite", "ink", "moss"].includes(PREFS.theme) ? PREFS.theme : "graphite",
   sel: { call: {}, link: {}, prompt: {}, file: {} },
   kindFilter: "all",
@@ -222,6 +223,12 @@ const ACTIONS = {
   lens: (el) => {
     STATE.lens = el.dataset.lens;
     STATE.mobileDetail = false;
+    renderAll();
+  },
+  "space-fold": (el) => {
+    const key = el.dataset.space;
+    STATE.foldedSpaces = { ...STATE.foldedSpaces, [key]: !STATE.foldedSpaces[key] };
+    savePrefs();
     renderAll();
   },
   "rail-group": (el) => {
@@ -598,6 +605,7 @@ document.addEventListener("keydown", (e) => {
 
 // ---------- Start ----------
 DB = buildStore();
+rzInstall();
 renderAll();
 setInterval(tickClocks, 1000);
 startLive();

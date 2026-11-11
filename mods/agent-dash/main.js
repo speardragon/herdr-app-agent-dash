@@ -2,11 +2,11 @@
 // then read what it did through five lenses: overview, tool calls, links, prompts, changes.
 
 import { View, div } from "gpui-kit";
-import { h_flex, v_flex, VirtualListScrollHandle } from "gpui-base";
+import { h_flex, v_flex, h_resizable, resizable_panel, VirtualListScrollHandle } from "gpui-base";
 import { agents, terminals, panes, machines, spaces, shared, home, run, notify, setAgentOrder, nextCommand, props, closeOverlay, focused } from "herdr";
 import { SessionStore } from "./data/store.js";
 import * as reader from "./data/reader.js";
-import { webAddress } from "./data/web.js";
+import { webAddress, writeSpaces } from "./data/web.js";
 import { tokens, empty } from "./ui/kit.js";
 import { endedTerminals } from "./data/ended.js";
 import { rail, railRows, spaceOrder } from "./ui/rail.js";
@@ -284,7 +284,11 @@ export default class AgentDash extends View {
     const target = { scope: this.state.scope, lens: this.state.lens, call };
     cx.spawn(async (cx) => {
       try {
-        cx.open_url(await webAddress(target));
+        const logos = shared("space.logos") ?? {};
+        const colors = shared("space.colors") ?? {};
+        const url = await webAddress(target); // starts the server, which makes its .web folder
+        await writeSpaces(spaces().map((sp) => ({ id: sp.id, name: sp.name, logo: logos[sp.id] ?? null, color: colors[sp.id] ?? null })));
+        cx.open_url(url);
       } catch (error) {
         notify({ title: "웹에서 열지 못했어요", body: String(error?.message ?? error), level: "error" });
       }
@@ -486,6 +490,21 @@ export default class AgentDash extends View {
     const width = this.size.width;
     const compactRail = width < 980;
     const compact = width < 860;
+    const railEl = rail({ group: this.railGroup, onGroup: (g, cx) => this.setRailGroup(g, cx), spaces: spaces(), colors: shared("space.colors") ?? {}, logos: shared("space.logos") ?? {},
+      folded: (id) => this.foldedSpaces.has(id), onFold: (id, cx) => this.toggleSpace(id, cx), roster, terms: this.terms, scope: this.state.scope, compact: compactRail, width: compactRail ? RAIL_NARROW : null, machines: machines(), onPick: (a, cx) => this.pickScope(a, cx) }, t);
+    const content = this.state.scope === "all"
+      // 전체 현황 starts empty: only its name, until what it should show is decided.
+      ? v_flex().flex_1().min_w(0).h_full().items_center().justify_center().child(div().text_size(22).font_semibold().text_color(t.muted).child("전체 현황"))
+      : v_flex().flex_1().min_w(0).size_full()
+        .child(this.head(byAddr, list, t, compact))
+        .child(lensTabs(this.state.lens, this.counts(byAddr), (lens, cx) => this.pickLens(lens, cx), t, compact))
+        .child(v_flex().flex_1().min_h(0).child(list.length ? this.lensBody(byAddr, t, compact, cx) : empty("에이전트가 없어요", "herdr에서 Claude Code나 Codex를 실행하면 여기 나타나요.", t, "bot")));
+    // The rail's width can be dragged (its edge); a narrow window keeps the icon-only rail fixed.
+    const split = compactRail
+      ? [railEl, content]
+      : [h_resizable("root-split").size_full()
+        .child(resizable_panel().size(RAIL_WIDE).size_range(200, 440).child(railEl))
+        .child(resizable_panel().child(content))];
     return h_flex().id("root").size_full().bg(t.background).text_color(t.foreground)
       .track_focus(this.handle).on_key_down((e, cx) => this.onKey(e, cx))
       .on_mouse_down("left", () => this.handle.focus())
@@ -493,14 +512,6 @@ export default class AgentDash extends View {
         this.size = size;
         cx.notify();
       })
-      .child(rail({ group: this.railGroup, onGroup: (g, cx) => this.setRailGroup(g, cx), spaces: spaces(), colors: shared("space.colors") ?? {}, logos: shared("space.logos") ?? {},
-        folded: (id) => this.foldedSpaces.has(id), onFold: (id, cx) => this.toggleSpace(id, cx), roster, terms: this.terms, scope: this.state.scope, compact: compactRail, width: compactRail ? RAIL_NARROW : RAIL_WIDE, machines: machines(), onPick: (a, cx) => this.pickScope(a, cx) }, t))
-      .child(this.state.scope === "all"
-        // 전체 현황 starts empty: only its name, until what it should show is decided.
-        ? v_flex().flex_1().min_w(0).h_full().items_center().justify_center().child(div().text_size(22).font_semibold().text_color(t.muted).child("전체 현황"))
-        : v_flex().flex_1().min_w(0).h_full()
-        .child(this.head(byAddr, list, t, compact))
-        .child(lensTabs(this.state.lens, this.counts(byAddr), (lens, cx) => this.pickLens(lens, cx), t, compact))
-        .child(v_flex().flex_1().min_h(0).child(list.length ? this.lensBody(byAddr, t, compact, cx) : empty("에이전트가 없어요", "herdr에서 Claude Code나 Codex를 실행하면 여기 나타나요.", t, "bot"))));
+      .children(split);
   }
 }

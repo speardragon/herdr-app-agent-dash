@@ -8,6 +8,15 @@ const ENDED_SHOWN_MS = 24 * 3600 * 1000;
 
 const baseName = (path) => String(path ?? "").split("/").pop();
 
+// Tab names herdr gives itself: they say nothing, so the session's own title is the better name.
+const DEFAULT_TAB = /^(\d+|main|claude code|codex|claude|shell|terminal)$/i;
+
+/** What to call an agent: the tab name you gave it, else the title its session set. */
+export function agentName(tabName, title) {
+  const tab = String(tabName ?? "").trim();
+  return tab && !DEFAULT_TAB.test(tab) ? tab : title || tab || "";
+}
+
 /** The task an agent was launched with (`hc run claude "<task>"`), or null. */
 export function taskOf(term) {
   const argv = term?.argv ?? [];
@@ -60,7 +69,7 @@ export function buildRoster(agentList, liveTerms, ended = [], now = Date.now()) 
   const terms = Object.fromEntries(liveTerms.map((x) => [x.address, x]));
   const listed = new Set(agentList.map((a) => a.address));
   const raw = {};
-  for (const a of agentList) raw[a.address] = { ...a, sub: false, state: "live", parent: terms[a.address]?.parent ?? null, created: terms[a.address]?.created_ms ?? null, task: null, isAgent: true };
+  for (const a of agentList) raw[a.address] = { ...a, title: agentName(a.tab_name, a.title), summary: a.title, sub: false, state: "live", parent: terms[a.address]?.parent ?? null, created: terms[a.address]?.created_ms ?? null, task: null, isAgent: true };
   for (const term of [...liveTerms, ...ended]) {
     if (listed.has(term.address) || !term.parent || raw[term.address]) continue;
     if (term.state !== "live" && now - (term.finished_ms ?? 0) > ENDED_SHOWN_MS) continue;

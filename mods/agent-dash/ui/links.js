@@ -25,7 +25,7 @@ function hostTile(url, t, size = 28) {
 function linkRow(item, selected, t) {
   const { link, agent } = item;
   const badgeColor = link.badge ? BADGE_COLOR(t)[link.badge.kind] ?? t.muted : null;
-  return h_flex().id(item.key ?? `link-${link.url}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(10).rounded(8)
+  return h_flex().id(item.key ?? `link-${link.url}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(16)
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .child(div().relative().flex_none().child(hostTile(link.url, t))
@@ -120,10 +120,10 @@ function domainChips(items, active, ctx, t) {
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
   const pick = (id, cx) => ctx.setUi("links:domain", id === active ? null : id, cx);
   return h_flex().flex_none().px(12).pb(10).gap(6).flex_wrap()
-    .children(top.map(([d, n]) => h_flex().id(`dom-${d}`).h(24).px(8).gap(6).items_center().rounded(12).cursor_pointer()
+    .children(top.map(([d, n]) => h_flex().id(`dom-${d}`).h(24).px(8).gap(6).items_center().rounded(12).cursor_pointer().max_w_full().min_w(0)
       .bg(d === active ? alpha(t.accent, 0.16) : t.raised).text_size(11.5).text_color(d === active ? t.foreground : t.muted)
       .hover((s) => s.bg(t.hover)).on_click((_e, cx) => pick(d, cx))
-      .child(d).child(div().text_size(10.5).text_color(t.dim).child(String(n)))));
+      .child(div().min_w(0).truncate().child(d)).child(div().flex_none().text_size(10.5).text_color(t.dim).child(String(n)))));
 }
 
 export function linksLens(ctx, t) {
@@ -139,7 +139,7 @@ export function linksLens(ctx, t) {
   const list = v_flex().size_full().min_h(0)
     .child(h_flex().flex_none().px(12).pt(10).pb(8).child(segmented("links-from", sources, from, (id, cx) => ctx.setUi("links:from", id, cx), t)))
     .child(domainChips(sourced, domain, ctx, t))
-    .child(items.length ? div().flex_1().min_h(0).relative().px(6)
+    .child(items.length ? div().flex_1().min_h(0).relative()
       .child(v_virtual_list("link-list", items.length, ROW_H, (i) => items[i].key, (range) =>
         items.slice(range.start, range.end).map((it) => linkRow(it, it.key === selected?.key, t)))
         .on_item_click((key, cx) => {

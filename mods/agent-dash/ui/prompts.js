@@ -16,7 +16,7 @@ function promptRow(item, selected, t) {
   const { prompt, turn, agent } = item;
   const label = firstLine(prompt.display ?? prompt.text) || (prompt.images ? `이미지 ${prompt.images}개` : "");
   const quiet = prompt.kind === "notice" || prompt.kind === "answer";
-  return h_flex().id(item.key ?? `prompt-${prompt.n}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(10).rounded(8)
+  return h_flex().id(item.key ?? `prompt-${prompt.n}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(16)
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .child(v_flex().w(34).flex_none().items_center().gap(4)
@@ -103,7 +103,7 @@ export function promptsLens(ctx, t) {
   const items = itemsFor(ctx);
   if (!items.length) return empty("프롬프트가 없어요", null, t, "message");
   const selected = items.find((it) => it.key === ctx.sel.prompt) ?? items.find((it) => it.key === `${ctx.scope}|${ctx.sel.prompt}`) ?? items[0];
-  const list = div().size_full().min_h(0).relative().px(6).pt(6)
+  const list = div().size_full().min_h(0).relative().pt(6)
     .child(v_virtual_list("prompt-list", items.length, ROW_H, (i) => items[i].key, (range) =>
       items.slice(range.start, range.end).map((it) => promptRow(it, it.key === selected.key, t)))
       .on_item_click((key, cx) => {

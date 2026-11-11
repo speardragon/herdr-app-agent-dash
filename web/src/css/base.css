@@ -76,9 +76,17 @@ pre {
 }
 
 /* Scrollbars: thin, quiet, only as strong as needed. */
+/* Scrollbars show only while something scrolls (.is-scrolling, set by resize.js), so they do not
+   sit over the draggable edges the rest of the time. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #ffffff22 transparent;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.25s;
+}
+
+.is-scrolling,
+*:hover > .is-scrolling:hover {
+  scrollbar-color: #ffffff30 transparent;
 }
 
 ::-webkit-scrollbar {
@@ -87,13 +95,13 @@ pre {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ffffff1c;
+  background: transparent;
   border-radius: 10px;
   border: 3px solid transparent;
   background-clip: padding-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.is-scrolling::-webkit-scrollbar-thumb {
   background-color: #ffffff30;
 }
 
@@ -277,6 +285,20 @@ pre {
   font-size: var(--fs-xs);
   white-space: nowrap;
   max-width: 100%;
+  min-width: 0;
+}
+
+/* A long address is cut with an ellipsis; the count after it stays. */
+.chip .chip-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip .count,
+.chip > svg,
+.chip > img {
+  flex: none;
 }
 
 .chip.mono {
@@ -538,4 +560,39 @@ button.chip[aria-pressed="true"] {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Drag handles on the rail and list edges (resize.js) ---------- */
+.rz-handle {
+  position: fixed;
+  z-index: 60;
+  width: 14px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.rz-handle[hidden] {
+  display: none;
+}
+
+.rz-handle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.rz-handle:hover::after,
+.rz-handle.on::after {
+  background: var(--accent);
+}
+
+.rz-dragging,
+.rz-dragging * {
+  cursor: col-resize !important;
+  user-select: none !important;
 }

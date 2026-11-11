@@ -28,7 +28,7 @@ function itemsFor(ctx) {
 
 function fileRow(item, selected, t) {
   const { file } = item;
-  return h_flex().id(item.key ?? `file-${file.path}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(10).rounded(8)
+  return h_flex().id(item.key ?? `file-${file.path}`).w_full().h(ROW_H).flex_none().gap(10).items_center().px(16)
     .when(selected, (e) => e.bg(t.selected))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .child(div().w(16).flex_none().text_size(11.5).font_bold().text_color(STATUS_COLOR(t, file.status)).child(file.status))
@@ -137,7 +137,7 @@ export function changesLens(ctx, t) {
   const items = itemsFor(ctx);
   if (!items.length) return empty("바뀐 파일이 없어요", "에이전트가 Edit·Write·apply_patch로 파일을 고치면 여기 모여요.", t, "diff");
   const selected = items.find((it) => it.key === ctx.sel.file) ?? items.find((it) => it.file.path === ctx.sel.file) ?? items[0];
-  const list = div().size_full().min_h(0).relative().px(6).pt(6)
+  const list = div().size_full().min_h(0).relative().pt(6)
     .child(v_virtual_list("file-list", items.length, ROW_H, (i) => items[i].key, (range) =>
       items.slice(range.start, range.end).map((it) => fileRow(it, it.key === selected.key, t)))
       .on_item_click((key, cx) => {
