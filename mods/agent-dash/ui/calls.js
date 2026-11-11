@@ -64,7 +64,7 @@ function turnRow(item, t) {
   const quiet = !p || p.kind === "notice" || p.kind === "answer";
   const tone = quiet ? t.dim : t.accent;
   const label = p ? firstLine(p.display ?? p.text) || (p.images ? `이미지 ${p.images}개` : "") : "프롬프트 전";
-  return v_flex().w_full().h(TURN_H).flex_none().justify_end().pb(4).px(6)
+  return v_flex().w_full().h(TURN_H).flex_none().justify_start().pt(4).px(6)
     .child(h_flex().w_full().h(32).flex_none().gap(8).items_center().pr(10).rounded(7).overflow_hidden()
       .bg(alpha(tone, quiet ? 0.05 : 0.09))
       .child(div().w(3).h_full().flex_none().bg(alpha(tone, quiet ? 0.4 : 0.85)))

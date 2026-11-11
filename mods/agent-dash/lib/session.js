@@ -104,7 +104,7 @@ function applyOne(acc, e) {
   switch (e.k) {
     case "prompt":
       const kind = classifyPrompt(e.text, !!e.command);
-      acc.prompts.push({ n: acc.prompts.length + 1, id: e.id, ts: e.ts, text: e.text ?? "", images: e.images ?? 0, command: !!e.command, kind: kind.kind, display: kind.display, answer: kind.kind === "answer" });
+      acc.prompts.push({ n: acc.prompts.length + 1, id: e.id, ts: e.ts, text: e.text ?? "", images: e.images ?? 0, at: e.at ?? null, command: !!e.command, kind: kind.kind, display: kind.display, answer: kind.kind === "answer" });
       // Links the person handed over (not notices or tool answers put there on their behalf).
       if (kind.kind !== "notice" && kind.kind !== "answer" && /https?:\/\/|\]\(/.test(e.text ?? "")) {
         const n = acc.prompts.length;

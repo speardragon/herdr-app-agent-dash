@@ -4,7 +4,7 @@
 
 import { div } from "gpui-kit";
 import { h_flex, v_flex, v_virtual_list, Scrollbar, TextView, h_resizable, resizable_panel } from "gpui-base";
-import { alpha, button, chip, empty, icon, programIcon, scrollArea, sectionTitle, segmented } from "./kit.js";
+import { alpha, button, chip, empty, icon, pill, programIcon, scrollArea, sectionTitle, segmented } from "./kit.js";
 import { anatomy, domainOf } from "../lib/links.js";
 import { relTime, when } from "../lib/format.js";
 
@@ -30,7 +30,7 @@ function linkRow(item, selected, t) {
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .child(div().relative().flex_none().child(hostTile(link.url, t))
       // Whose link it is, at a glance: yours (a speech mark) or the agent's.
-      .child(div().absolute().right(-4).bottom(-4).size(14).rounded(7).bg(mine(link) ? t.accent : t.raised).border(1).border_color(t.background).flex().items_center().justify_center()
+      .child(div().absolute().right(-4).bottom(-4).size(14).rounded(7).bg(mine(link) ? MINE(t) : t.raised).border(1).border_color(t.background).flex().items_center().justify_center()
         .child(icon(mine(link) ? "message" : "bot", 8, mine(link) ? t.accent_foreground ?? t.background : t.dim))))
     .child(v_flex().flex_1().min_w(0).gap(2)
       .child(h_flex().gap(6).items_center().min_w(0)
@@ -43,6 +43,8 @@ function linkRow(item, selected, t) {
 }
 
 const mine = (link) => link.from === "user";
+// Your links are yellow (the theme's amber), so they stand apart from the agent's.
+const MINE = (t) => t.working;
 
 function decodeSafe(s) {
   try {
@@ -85,13 +87,13 @@ function detail(item, ctx, t) {
       .child(button("link-open", "열기", (_e, cx) => (link.local ? ctx.openFile(link.url, cx) : cx.open_url(link.url)), t, { iconName: "external", primary: true })))
     .child(h_flex().gap(6).flex_wrap()
       .child(chip(agent.title, t))
-      .child(mine(link) ? chip("내가 보낸 링크", t, t.accent) : chip("에이전트 답변", t))
+      .child(mine(link) ? pill("내가 보낸 링크", MINE(t), t) : chip("에이전트 답변", t))
       .child(chip(`${mine(link) ? `프롬프트 #${link.prompt}` : `답변 #${link.reply}`} · ${when(link.ts)}`, t))
       .when(Boolean(link.label), (e) => e.child(chip(`글자: ${link.label}`, t))))
     .child(v_flex().w_full()
       .child(sectionTitle("나온 문장", t))
       .child(h_flex().w_full().gap(10).items_start()
-        .child(div().w(3).min_h(20).flex_none().rounded(2).bg(alpha(t.accent, 0.6)).self_stretch())
+        .child(div().w(3).min_h(20).flex_none().rounded(2).bg(alpha(mine(link) ? MINE(t) : t.accent, 0.6)).self_stretch())
         .child(div().flex_1().min_w(0).text_size(13).text_color(t.foreground).child(link.context || "—"))))
     .when(!link.local, (e) => e.child(v_flex().w_full().child(sectionTitle("주소 구조", t)).child(anatomyView(link.url, t))))
     .when(Boolean(excerpt.trim()), (e) => e.child(v_flex().w_full()
@@ -134,7 +136,7 @@ export function linksLens(ctx, t) {
   const domain = ctx.ui("links:domain", null);
   const items = domain ? sourced.filter((it) => domainKey(it.link) === domain) : sourced;
   const userCount = all.filter((it) => mine(it.link)).length;
-  const sources = [{ id: "all", label: `전체 ${all.length}` }, { id: "user", label: `내가 보낸 ${userCount}`, icon: "message" }, { id: "agent", label: `에이전트 답변 ${all.length - userCount}`, icon: "bot" }];
+  const sources = [{ id: "all", label: `전체 ${all.length}` }, { id: "user", label: `내가 보낸 ${userCount}`, icon: "message", color: "mine" }, { id: "agent", label: `에이전트 답변 ${all.length - userCount}`, icon: "bot" }];
   const selected = items.find((it) => it.key === ctx.sel.link) ?? items[0];
   const list = v_flex().size_full().min_h(0)
     .child(h_flex().flex_none().px(12).pt(10).pb(8).child(segmented("links-from", sources, from, (id, cx) => ctx.setUi("links:from", id, cx), t)))

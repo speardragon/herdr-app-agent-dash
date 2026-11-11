@@ -25,16 +25,17 @@ export function callItems(scope, agentsByAddr, store, kind) {
     const calls = kind === "all" ? d.calls : d.calls.filter(keep);
     const perTurn = {};
     for (const c of calls) perTurn[c.turn] = (perTurn[c.turn] ?? 0) + 1;
-    // A turn's calls are contiguous, so walking backwards keeps each group whole.
+    // A turn's calls are contiguous, so walking backwards keeps each group whole. The list reads
+    // from the bottom up (prompt, then its calls), so a turn's calls come first and the prompt
+    // that caused them sits right below.
+    const turnItem = (n) => ({ type: "turn", key: `turn:${n}`, n, prompt: session.prompts[n - 1] ?? null, count: perTurn[n] });
     for (let i = calls.length - 1; i >= 0; i--) {
       const call = calls[i];
-      if (call.turn !== turn) {
-        turn = call.turn;
-        const prompt = session.prompts[turn - 1] ?? null;
-        items.push({ type: "turn", key: `turn:${turn}`, n: turn, prompt, count: perTurn[turn], first: items.length === 0 });
-      }
+      if (turn !== -1 && call.turn !== turn) items.push(turnItem(turn));
+      turn = call.turn;
       items.push({ type: "call", key: callKey(scope, call), call, agent, status: callStatus(call, session, agent.status) });
     }
+    if (turn !== -1) items.push(turnItem(turn));
     return { items, counts };
   }
   const all = [];

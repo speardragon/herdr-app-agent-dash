@@ -20,6 +20,7 @@ const CSS = [
   "src/css/mongo.css",
   "src/css/web.css",
   "src/css/sites.css",
+  "src/css/sites-google.css",
 ];
 
 const JS = [
@@ -38,6 +39,7 @@ const JS = [
   "src/js/tools/agentic.js",
   "src/js/tools/mongo.js",
   "src/js/tools/product.js",
+  "src/js/tools/product-google.js",
   "src/js/tools/mcp.js",
   "src/js/tools/stage.js",
   "src/js/views/rail.js",
@@ -63,6 +65,8 @@ function build() {
   const css = CSS.map(read).join("\n");
   const js = JS.map((p) => `/* ---- ${p} ---- */\n${read(p)}`).join("\n");
   const html = read("src/template.html")
+    .replace("/*__FAVICON_64__*/", () => readFileSync(join(root, "src/assets/favicon-64.png")).toString("base64"))
+    .replace("/*__FAVICON_32__*/", () => readFileSync(join(root, "src/assets/favicon-32.png")).toString("base64"))
     .replace("/*__CSS__*/", () => css)
     .replace("/*__JS__*/", () => js);
   mkdirSync(dirname(OUT), { recursive: true });

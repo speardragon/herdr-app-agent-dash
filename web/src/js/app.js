@@ -12,7 +12,7 @@ function loadPrefs() {
 
 function savePrefs() {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ theme: STATE.theme, railGroup: STATE.railGroup, foldedSpaces: STATE.foldedSpaces, locale: UI.locale, concept: STATE.concept }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ theme: STATE.theme, railGroup: STATE.railGroup, foldedSpaces: STATE.foldedSpaces, followFocus: STATE.followFocus, locale: UI.locale, concept: STATE.concept }));
   } catch {
     // Storage can be unavailable (private mode, file:// policies); prefs are a convenience only.
   }
@@ -26,6 +26,7 @@ const STATE = {
   lens: "overview",
   railGroup: PREFS.railGroup === "space" ? "space" : "status",
   railFolded: false,
+  followFocus: PREFS.followFocus !== false,
   foldedSpaces: PREFS.foldedSpaces && typeof PREFS.foldedSpaces === "object" ? PREFS.foldedSpaces : {},
   theme: ["graphite", "ink", "moss"].includes(PREFS.theme) ? PREFS.theme : "graphite",
   sel: { call: {}, link: {}, prompt: {}, file: {} },
@@ -223,6 +224,12 @@ const ACTIONS = {
   lens: (el) => {
     STATE.lens = el.dataset.lens;
     STATE.mobileDetail = false;
+    renderAll();
+  },
+  "follow-focus": () => {
+    STATE.followFocus = !STATE.followFocus;
+    LIVE.lastFocus = null; // turning it on picks up what is focused now
+    savePrefs();
     renderAll();
   },
   "space-fold": (el) => {

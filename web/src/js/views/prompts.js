@@ -34,11 +34,13 @@ function promptRow(p, selected) {
 function turnSummary(p) {
   const calls = callsOf(p.agent).filter((c) => c.turn === p.n);
   const next = promptsOf(p.agent).find((x) => x.n === p.n + 1);
-  const reply = repliesOf(p.agent).find((r) => r.turn === p.n);
+  // Every answer of the turn, in order: an agent that thinks between steps answers several times.
+  const replies = repliesOf(p.agent).filter((r) => r.turn === p.n).sort((x, y) => x.ts - y.ts);
+  const reply = replies[replies.length - 1] ?? null;
   const end = reply ? reply.ts : next ? next.ts : Date.now();
   const files = uniq(calls.filter((c) => kindOf(c) === "edit").flatMap((c) => (c.name === "apply_patch" ? patchFiles(c.input.patch).map((f) => f.path) : [c.input.file_path])));
-  const running = !reply && calls.some((c) => c.status === "running" || c.status === "pending");
-  return { calls, reply, files, secs: (end - p.ts) / 1000, running };
+  const running = calls.some((c) => c.status === "running" || c.status === "pending");
+  return { calls, reply, replies, files, secs: (end - p.ts) / 1000, running };
 }
 
 function promptDetail(p) {
@@ -46,25 +48,36 @@ function promptDetail(p) {
   const a = agentById(p.agent);
   const t = turnSummary(p);
   const textHTML = raw(esc(p.text) + (p.images ? Array.from({ length: p.images }, (_, k) => ` <span class="att">${icon("image", 13).s} [Image #${k + 1}]</span>`).join("") : ""));
+  const me = /^data:image\/(png|jpeg|webp|gif);base64,/.test(LIVE.me?.avatar ?? "") ? raw(`<img class="cav" src="${LIVE.me.avatar}" alt="나">`) : raw('<span class="cav me">나</span>');
+  // Laid out like a chat in KakaoTalk's high-contrast look: what the prompt did first, then your
+  // message (yellow, right) and the agent's answer (dark, left), both nearly full width.
   return html`<div class="prompt-detail">
     <div class="pd-head">
       <span class="no">#${p.n}</span><span>${clock(p.ts)} · <span data-rel="${p.ts}">${relTime(p.ts)}</span></span>
       ${STATE.scope === "all" ? html`<span class="chip">${logo(a.app, 13)} ${a.title}</span>` : ""}
       <span class="grow"></span>
       <button class="btn sm" data-action="copy" data-copy="${p.text}">${icon("copy", 13)} 복사</button>
+      ${t.calls.length ? html`<button class="btn sm primary" data-action="open-call" data-agent="${p.agent}" data-call="${[...t.calls].sort((x, y) => x.ts - y.ts)[0].id}" title="이 프롬프트가 부른 도구 호출로 이동">${icon("terminal", 13)} 이 턴의 호출 ${t.calls.length}개</button>` : ""}
     </div>
-    <div class="pd-text">${textHTML}</div>
-    <div class="ld-label">이 프롬프트가 한 일</div>
+    <div class="ld-label" style="margin-top:14px">이 프롬프트가 한 일</div>
     <div class="after">
       <div class="stat"><div class="k">걸린 시간</div><div class="v">${t.running ? html`<span class="pulse" style="color:var(--working)">진행 중</span>` : fmtDurKo(t.secs)}</div></div>
       <div class="stat"><div class="k">도구 호출</div><div class="v">${t.calls.length}</div></div>
       <div class="stat"><div class="k">바뀐 파일</div><div class="v">${t.files.length}</div></div>
-      <div class="stat"><div class="k">답변 속 링크</div><div class="v">${t.reply ? t.reply.links.length : 0}</div></div>
+      <div class="stat"><div class="k">답변 속 링크</div><div class="v">${t.replies.reduce((n, r) => n + r.links.length, 0)}</div></div>
     </div>
     ${t.calls.length ? html`<div class="strip">${[...t.calls].sort((x, y) => x.ts - y.ts).map(
       (c) => html`<button data-action="open-call" data-agent="${c.agent}" data-call="${c.id}" title="${toolTarget(c)}"><span style="color:${kindColor(c)};display:inline-flex">${toolIcon(c, 13)}</span><b>${toolTitle(c)}</b><span class="truncate mono" style="font-size:11px">${toolTarget(c)}</span></button>`,
     )}</div>` : ""}
-    ${t.reply ? html`<div class="ld-label">답변 · ${clock(t.reply.ts)}</div><div class="reply">${md(t.reply.text, { numbers: new Map() })}</div>` : html`<div class="ld-label">답변</div><div class="reply dim">${t.running ? "아직 답하는 중이에요." : "답변이 없어요."}</div>`}
+    <div class="chat">
+      <div class="lights chat-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="cmsg me"><div class="cbody">
+        ${p.images && p.at != null ? html`<div class="pd-imgs ${p.images > 1 ? "many" : ""}" style="--cols:${Math.min(p.images, 3)}">${Array.from({ length: Math.min(p.images, 8) }, (_x, k) => promptImage(p.agent, p.at, k))}</div>` : ""}
+        <div class="cbubble pd-text">${textHTML}</div></div>${me}</div>
+      <div class="cmsg ai"><span class="cav ai">${logo(a.app, 22)}</span><div class="cbody">
+        ${t.replies.map((r) => html`<div class="cbubble reply">${md(r.text, { numbers: new Map() })}</div><div class="ctime">${clock(r.ts)}</div>`)}
+        ${t.running ? html`<div class="cbubble reply dim">아직 답하는 중이에요…</div>` : t.replies.length ? "" : html`<div class="cbubble reply dim">답변이 없어요.</div>`}</div></div>
+    </div>
   </div>`;
 }
 

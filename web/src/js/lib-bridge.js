@@ -14,3 +14,6 @@ import * as LR from "/lib/rich.js";
 import * as LJ from "/lib/jira.js";
 import * as LN from "/lib/notion.js";
 import * as LSK from "/lib/slack.js";
+import * as LGM from "/lib/gmail.js";
+import * as LGC from "/lib/gcal.js";
+import * as LGS from "/lib/gsheets.js";

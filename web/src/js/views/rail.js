@@ -60,7 +60,8 @@ function spaceMark(name) {
   if (space?.image) return html`<img class="sp-mark" src="${space.image}" alt="" />`;
   const tint = space?.color?.startsWith("#") ? space.color : SPACE_TINT[space?.color] ?? SPACE_TINT.ansi6;
   const letter = space?.text || [...String(name ?? "?")][0]?.toUpperCase() || "?";
-  return html`<span class="sp-mark" style="${space?.text ? "" : `background:${tint}`}">${letter}</span>`;
+  // The letter is white or dark, whichever reads better on the space's color.
+  return html`<span class="sp-mark" style="${space?.text ? "" : `background:${tint};color:${LF.inkOn(tint)}`}">${letter}</span>`;
 }
 
 function railGroups() {
@@ -102,6 +103,7 @@ function railView() {
   const subs = DB.agents.filter((a) => a.sub && a.state === "live").length;
   return html`<div class="rail-head">
       <span class="rail-title grow">에이전트<b>${DB.roster.roots.length}</b>${subs ? html`<small class="dim"> · 하위 ${subs}</small>` : ""}</span>
+      <button class="follow ${STATE.followFocus ? "on" : ""}" data-action="follow-focus" aria-pressed="${STATE.followFocus}" title="${STATE.followFocus ? "Herdr에서 포커스한 에이전트를 따라가요 (끄려면 클릭)" : "Herdr 포커스를 따라가지 않아요 (켜려면 클릭)"}">${icon("link", 12)} 포커스</button>
       <div class="seg" role="group" aria-label="묶는 방식">
         <button data-action="rail-group" data-value="status" aria-pressed="${STATE.railGroup === "status"}" title="급한 순서">${icon("clock", 12)}</button>
         <button data-action="rail-group" data-value="space" aria-pressed="${STATE.railGroup === "space"}" title="스페이스별">${icon("layers", 12)}</button>

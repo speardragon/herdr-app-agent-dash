@@ -3,10 +3,12 @@
 // in place as the page re-renders. Its cursor comes from CSS, so it does not flicker, and the
 // pointer is captured while dragging. The widths live in CSS variables on <html>.
 const RZ_KEY = "agent-dash.widths";
-const RZ_LIMITS = { "--rail-w": [200, 440], "--list-w": [260, 640] };
+const RZ_LIMITS = { "--rail-w": [200, 440], "--list-w": [260, 640], "--tree-w": [200, 560] };
 const RZ_TARGETS = [
   { selector: ".rail", name: "--rail-w", usable: () => !document.querySelector(".concept-a.rail-folded") && innerWidth > 980 },
   { selector: ".split > .pane-list", name: "--list-w", usable: () => innerWidth > 860 },
+  // The changes lens: file explorer | diff.
+  { selector: ".dx:not(.no-tree) > .tree-pane", name: "--tree-w", usable: () => innerWidth > 760 },
 ];
 
 const rzClamp = (name, px) => Math.min(RZ_LIMITS[name][1], Math.max(RZ_LIMITS[name][0], Math.round(px)));

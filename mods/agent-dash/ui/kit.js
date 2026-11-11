@@ -124,7 +124,7 @@ export function segmented(id, options, selected, on, t) {
         .when(o.id === selected, (e) => e.bg(t.selected))
         .hover((s) => s.text_color(t.foreground))
         .on_click((_e, cx) => on(o.id, cx))
-        .when(Boolean(o.icon), (e) => e.child(icon(o.icon, 12, o.id === selected ? t.foreground : t.dim)))
+        .when(Boolean(o.icon), (e) => e.child(icon(o.icon, 12, o.color === "mine" ? t.working : o.id === selected ? t.foreground : t.dim)))
         .child(o.label)),
   );
 }

@@ -45,6 +45,9 @@ export default class AgentDash extends View {
     // How the rail groups agents ("status" | "space") and which spaces are folded: kept across opens.
     this.railGroup = this.stored("rail.group", "status") === "space" ? "space" : "status";
     this.foldedSpaces = new Set(this.stored("rail.folded", []));
+    // Follow the terminal that has focus in Herdr (an agent): on by default, a switch in the rail head.
+    this.followFocus = this.stored("rail.followFocus", true) !== false;
+    this.lastFocus = this.state?.scope ?? null;
     this.state = {
       // Opens on the agent it was called from (the terminal that had the keyboard).
       scope: this.callerScope(),
@@ -80,6 +83,24 @@ export default class AgentDash extends View {
     } catch {
       return fallback;
     }
+  }
+
+  setFollowFocus(on, cx) {
+    this.followFocus = on;
+    localStorage.setItem("rail.followFocus", JSON.stringify(on));
+    this.lastFocus = null; // turning it on picks up the agent focused right now
+    this.syncFocus(cx);
+    cx.notify();
+  }
+
+  /** The agent in focus in Herdr changed: show that one, once per change (picking another
+   *  agent here is left alone until Herdr's focus moves again). */
+  syncFocus(cx) {
+    if (!this.followFocus) return;
+    const at = this.callerScope();
+    if (at === "all" || at === this.lastFocus) return;
+    this.lastFocus = at;
+    if (at !== this.state.scope) this.pickScope(at, cx);
   }
 
   setRailGroup(group, cx) {
@@ -167,6 +188,7 @@ export default class AgentDash extends View {
         // Not drawn yet: the next tick tries again.
       }
     }
+    this.syncFocus(cx);
     const now = Date.now();
     this.refreshEnded(now, cx);
     const roster = this.roster();
@@ -426,8 +448,11 @@ export default class AgentDash extends View {
       pickScope: (address, cx, lens) => this.pickScope(address, cx, lens),
       pickLens: (lens, cx) => this.pickLens(lens, cx),
       openCall: (address, callId, cx) => {
-        this.update({ scope: address, lens: "calls", follow: false, detailOpen: true }, cx);
-        this.setSel({ call: `call:${address}:${callId}` }, cx, address);
+        // Show every kind, so the call is in the list, and bring it on screen.
+        const key = `call:${address}:${callId}`;
+        this.update({ scope: address, lens: "calls", follow: false, detailOpen: true, kind: "all" }, cx);
+        this.setSel({ call: key }, cx, address);
+        this.scrollTo = key;
       },
       openFile: (path, cx) => this.openFile(path, cx),
     };
@@ -490,7 +515,7 @@ export default class AgentDash extends View {
     const width = this.size.width;
     const compactRail = width < 980;
     const compact = width < 860;
-    const railEl = rail({ group: this.railGroup, onGroup: (g, cx) => this.setRailGroup(g, cx), spaces: spaces(), colors: shared("space.colors") ?? {}, logos: shared("space.logos") ?? {},
+    const railEl = rail({ group: this.railGroup, onGroup: (g, cx) => this.setRailGroup(g, cx), followFocus: this.followFocus, onFollowFocus: (on, cx) => this.setFollowFocus(on, cx), spaces: spaces(), colors: shared("space.colors") ?? {}, logos: shared("space.logos") ?? {},
       folded: (id) => this.foldedSpaces.has(id), onFold: (id, cx) => this.toggleSpace(id, cx), roster, terms: this.terms, scope: this.state.scope, compact: compactRail, width: compactRail ? RAIL_NARROW : null, machines: machines(), onPick: (a, cx) => this.pickScope(a, cx) }, t);
     const content = this.state.scope === "all"
       // 전체 현황 starts empty: only its name, until what it should show is decided.

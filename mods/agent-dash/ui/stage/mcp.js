@@ -13,8 +13,14 @@ import { slackTool } from "../../lib/slack.js";
 import { drawJira, prepareJira } from "./jira.js";
 import { drawNotion, prepareNotion } from "./notion.js";
 import { drawSlack, prepareSlack } from "./slack.js";
+import { gmailTool } from "../../lib/gmail.js";
+import { gcalTool } from "../../lib/gcal.js";
+import { gsheetsTool } from "../../lib/gsheets.js";
+import { drawGmail, prepareGmail } from "./gmail.js";
+import { drawGcal, prepareGcal } from "./gcal.js";
+import { drawGsheets, prepareGsheets } from "./gsheets.js";
 
-const PRODUCTS = [[prepareJira, drawJira], [prepareNotion, drawNotion], [prepareSlack, drawSlack]];
+const PRODUCTS = [[prepareJira, drawJira], [prepareNotion, drawNotion], [prepareSlack, drawSlack], [prepareGmail, drawGmail], [prepareGcal, drawGcal], [prepareGsheets, drawGsheets]];
 
 function prepareProduct(call) {
   for (const [prepare, draw] of PRODUCTS) {
@@ -98,7 +104,7 @@ export function renderMcp(call, ctx, t) {
   const data = memo(call, "json", () => tryJson(text));
   const shown = memo(call, "masked", () => masked(data !== undefined ? JSON.stringify(data, null, 2) : text));
   const view = ctx.ui(`mcp:${call.id}`, "pretty");
-  const known = jiraTool(call.name) || notionTool(call.name) || slackTool(call.name);
+  const known = jiraTool(call.name) || notionTool(call.name) || slackTool(call.name) || gmailTool(call.name) || gcalTool(call.name) || gsheetsTool(call.name);
   const product = !known || view === "raw" || call.result?.err ? null : productView(call, ctx, t);
   if (product) {
     return v_flex().w_full().gap(10)

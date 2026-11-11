@@ -763,6 +763,177 @@
   color: var(--foreground);
 }
 
+.pd-imgs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* not stretched: a picture keeps its own proportions */
+  gap: 10px;
+  margin: 12px 0 4px;
+}
+
+/* The conversation, like a chat in KakaoTalk's high-contrast look. Bubbles run nearly the full
+   width: only the far side keeps a gap, so long text stays readable. */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #000;
+}
+
+.ctime {
+  margin: -4px 0 4px 6px;
+  font-size: 11px;
+  color: #8e8e93;
+}
+
+.chat-lights {
+  gap: 8px;
+}
+
+.chat-lights i {
+  width: 12px;
+  height: 12px;
+  opacity: 1;
+}
+
+.cmsg {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.cmsg.me {
+  justify-content: flex-end;
+  padding-left: 44px;
+}
+
+.cmsg.ai {
+  padding-right: 44px;
+}
+
+.cmsg .cbody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmsg.me .cbody {
+  align-items: flex-end;
+}
+
+.cmsg.ai .cbody {
+  flex: 1;
+}
+
+.cav {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--raised);
+}
+
+.cav.me {
+  background: #5b8def;
+  color: #21252b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cbubble {
+  min-width: 0;
+  max-width: 100%;
+  padding: 11px 14px;
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+
+.cmsg.me .cbubble {
+  margin: 0;
+  border: 0;
+  background: #fee500;
+  color: #000;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.cmsg.me .cbubble .att {
+  color: #000;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.cmsg.ai .cbubble {
+  margin: 0;
+  border: 0;
+  background: #1c1c1e;
+  color: #e5e5ea;
+}
+
+.cmsg.me .pd-imgs {
+  margin: 0;
+}
+
+/* Inline code in the agent's bubble, Notion-style: colored text on a faint chip. The coral
+   (#ffa198) reads at about 7:1 on the bubble (6:1 on the chip). */
+.cmsg.ai .cbubble :not(pre) > code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(135, 131, 120, 0.22);
+  color: #ffa198;
+  font-size: 0.88em;
+}
+
+.cmsg.ai .cbubble pre code {
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+.cmsg.ai .cbubble > :first-child,
+.cmsg.ai .cbubble > :first-child > :first-child {
+  margin-top: 0;
+}
+
+.cmsg.ai .cbubble > :last-child,
+.cmsg.ai .cbubble > :last-child > :last-child {
+  margin-bottom: 0;
+}
+
+/* Several pictures: a masonry (CSS columns), each at its own proportions. */
+.pd-imgs.many {
+  display: block;
+  column-count: var(--cols, 2);
+  column-gap: 10px;
+  max-width: 560px;
+}
+
+.pd-imgs.many .pd-img {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  margin: 0 0 10px;
+  break-inside: avoid;
+}
+
+.pd-imgs .pd-img {
+  width: auto;
+  height: auto;
+  max-width: min(100%, 400px);
+  max-height: 280px;
+  object-fit: contain;
+  margin: 0;
+  border: 1px solid var(--border);
+  background: var(--raised);
+}
+
 .pd-text .att {
   display: inline-flex;
   align-items: center;
@@ -824,7 +995,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-columns: var(--tree-w, 290px) minmax(0, 1fr);
 }
 
 .dx.no-tree {
@@ -1058,7 +1229,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .dx {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: var(--tree-w, 240px) minmax(0, 1fr);
   }
 }
 

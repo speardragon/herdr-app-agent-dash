@@ -7,6 +7,7 @@
 import { div, image } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { words, runsText } from "../../lib/rich.js";
+import { inkOn } from "../../lib/format.js";
 import { masked } from "../../lib/tools.js";
 
 const ICONS = "mods/agent-dash/icons";
@@ -130,7 +131,8 @@ const AVATAR = ["#1868DB", "#22A06B", "#8F7EE7", "#E56910", "#C9372C", "#2898BD"
 
 /** A person without a picture: their initials on a steady color. */
 export function avatar(person, size, radius, hue) {
-  return div().size(size).flex_none().rounded(radius).bg(person?.unknown ? "#8C8F97" : AVATAR[hue % AVATAR.length]).text_color("#ffffff")
+  const fill = person?.unknown ? "#8C8F97" : AVATAR[hue % AVATAR.length];
+  return div().size(size).flex_none().rounded(radius).bg(fill).text_color(inkOn(fill, "#1F1F1F"))
     .text_size(Math.max(9, Math.round(size * 0.4))).when(true, (w) => bold(w, 600)).flex().items_center().justify_center().child(person?.initials ?? "?");
 }
 

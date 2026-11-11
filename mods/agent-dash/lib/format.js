@@ -102,3 +102,16 @@ export const clip = (text, n) => {
 export const sum = (list, pick = (x) => x) => list.reduce((acc, x) => acc + (pick(x) || 0), 0);
 
 export const CUT = /^\[\[cut (\d+)\]\]$/;
+
+const channel = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+const luminance = (hex) => {
+  const h = String(hex ?? "").replace("#", "");
+  const n = h.length === 3 ? [...h].map((c) => c + c).join("") : h;
+  if (!/^[0-9a-f]{6}/i.test(n)) return 0;
+  return 0.2126 * channel(parseInt(n.slice(0, 2), 16)) + 0.7152 * channel(parseInt(n.slice(2, 4), 16)) + 0.0722 * channel(parseInt(n.slice(4, 6), 16));
+};
+const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+
+/** The text color to put on a filled box: white or the dark ink, whichever reads better
+ *  (white on a yellow or mint box is under 2:1). */
+export const inkOn = (fill, dark = "#21252b") => (contrast(fill, "#ffffff") >= contrast(fill, dark) ? "#ffffff" : dark);

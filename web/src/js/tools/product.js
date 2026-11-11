@@ -3,6 +3,14 @@
 // sx_rich); this file turns the parsed views into HTML. css/sites.css holds the looks.
 
 const SITE_MEMO = new WeakMap();
+const SITE_PARSERS = [
+  ["jira", (call) => LJ.parseJira(call)], ["notion", (call) => LN.parseNotion(call)], ["slack", (call) => LSK.parseSlack(call)],
+  ["gmail", (call) => LGM.parseGmail(call)], ["gcal", (call) => LGC.parseGcal(call)], ["gsheets", (call) => LGS.parseGsheets(call)],
+];
+const SITE_DRAW = {
+  jira: (view) => sx_jiraView(view), notion: (view) => sx_notionView(view), slack: (view) => sx_slackView(view),
+  gmail: (view) => sx_gmailView(view), gcal: (view) => sx_gcalView(view), gsheets: (view) => sx_gsheetsView(view),
+};
 
 function sitePrepared(call) {
   const key = Boolean(call.result);
@@ -10,10 +18,14 @@ function sitePrepared(call) {
   if (hit && hit.key === key) return hit.value;
   let value = null;
   try {
-    const jira = LJ.parseJira(call);
-    const notion = jira ? null : LN.parseNotion(call);
-    const slack = jira || notion ? null : LSK.parseSlack(call);
-    value = jira ? { site: "jira", view: jira } : notion ? { site: "notion", view: notion } : slack ? { site: "slack", view: slack } : null;
+    // The first product that reads the call draws it.
+    for (const [site, parse] of SITE_PARSERS) {
+      const view = parse(call);
+      if (view) {
+        value = { site, view };
+        break;
+      }
+    }
   } catch {
     value = null;
   }
@@ -72,7 +84,10 @@ function sx_blocksHTML(list) {
 const sx_rich = (text, limit) => raw(`<div class="rich">${sx_blocksHTML(LR.blocks(text, limit))}</div>`);
 const sx_richBlocks = (list) => raw(`<div class="rich">${sx_blocksHTML(list)}</div>`);
 const sx_AVATAR_COLORS = ["#1868DB", "#22A06B", "#8F7EE7", "#E56910", "#C9372C", "#2898BD", "#B38600", "#DA62AC"];
-const sx_avatarEl = (person, cls = "") => raw(`<span class="av ${cls}" style="background:${person?.unknown || !person ? "#8C8F97" : sx_AVATAR_COLORS[LR.hueOf(person.name)]}">${esc(person?.initials ?? "?")}</span>`);
+function sx_avatarEl(person, cls = "") {
+  const fill = person?.unknown || !person ? "#8C8F97" : sx_AVATAR_COLORS[LR.hueOf(person.name)];
+  return raw(`<span class="av ${cls}" style="background:${fill};color:${LF.inkOn(fill, "#1F1F1F")}">${esc(person?.initials ?? "?")}</span>`);
+}
 const sx_outLink = (url, label) => (sx_safeUrl(url) ? html`<a class="open" href="${url}" target="_blank" rel="noopener noreferrer">${label} ↗</a>` : "");
 
 // ---------- Jira ----------
@@ -234,7 +249,7 @@ const sx_SLACK_MARK = '<svg viewBox="0 0 24 24" width="20" height="20"><rect x="
 
 function sx_slackMessage(m, thread = false) {
   return html`<div class="smsg">${sx_avatarEl(m.author, "sq")}<div class="grow" style="min-width:0">
-    <div class="sm-h"><b>${m.sent ? "보낸 메시지" : m.author.name}</b>${m.bot ? html`<span class="app">앱</span>` : ""}${m.time ? html`<span class="ts">${m.time}</span>` : ""}</div>
+    <div class="sm-h"><b>${m.sent ? "보낸 메시지" : m.author.name}</b>${m.bot ? html`<span class="sx-app">앱</span>` : ""}${m.time ? html`<span class="ts">${m.time}</span>` : ""}</div>
     ${sx_rich(m.text, 120)}
     ${!m.text && !m.files ? html`<div class="sdim">본문 글자가 없는 메시지예요 (버튼·카드만 있는 앱 메시지)</div>` : ""}
     ${m.around ? html`<div class="sdim">앞뒤 메시지 ${m.around}개는 '원본'에 있어요</div>` : ""}
@@ -270,9 +285,10 @@ function sx_slackView(view) {
 function siteView(call, strict = false) {
   const prepared = sitePrepared(call);
   if (!prepared) return null;
-  if (strict) return prepared.site === "jira" ? sx_jiraView(prepared.view) : prepared.site === "notion" ? sx_notionView(prepared.view) : sx_slackView(prepared.view);
+  const draw = SITE_DRAW[prepared.site];
+  if (strict) return draw(prepared.view);
   try {
-    return prepared.site === "jira" ? sx_jiraView(prepared.view) : prepared.site === "notion" ? sx_notionView(prepared.view) : sx_slackView(prepared.view);
+    return draw(prepared.view);
   } catch {
     return null;
   }

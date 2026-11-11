@@ -186,7 +186,7 @@ function renderMcpGeneric(call) {
       </div>
       ${site}`;
   }
-  const known = LJ.jiraTool(call.name) || LN.notionTool(call.name) || LSK.slackTool(call.name);
+  const known = LJ.jiraTool(call.name) || LN.notionTool(call.name) || LSK.slackTool(call.name) || LGM.gmailTool(call.name) || LGC.gcalTool(call.name) || LGS.gsheetsTool(call.name);
   const res = mcpResult(call);
   const payload = res.payload;
   const bytes = (call.result?.text ?? "").length;

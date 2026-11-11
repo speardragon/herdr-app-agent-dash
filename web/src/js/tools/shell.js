@@ -109,6 +109,19 @@ function renderShellRead(call) {
   </div>`;
 }
 
+// A command shows three lines until it is opened (long one-liners wrap, so the lines are
+// counted as drawn, by CSS).
+function shellCommandBlock(call, cmd, cmdHtml) {
+  const text = String(cmd ?? "");
+  const long = text.split("\n").length > 3 || text.length > 240;
+  if (!long) return html`<div class="term-cmd">${raw(cmdHtml)}</div>`;
+  const key = `cmd:${call.id}`;
+  const open = STATE.openFolds.has(key);
+  const more = text.split("\n").length - 3;
+  return html`<div class="term-cmd ${open ? "" : "clamp"}">${raw(cmdHtml)}</div>
+    <button class="term-fold cmd" data-action="unfold" data-fold="${key}" aria-expanded="${open}">${open ? "접기" : more > 0 ? `전체 명령 보기 (${more}줄 더)` : "전체 명령 보기"}</button>`;
+}
+
 function renderShell(call) {
   if (call.name === "exec") return renderExecScript(call);
   const i = call.input;
@@ -138,11 +151,13 @@ function renderShell(call) {
         ${i.timeout ? html`<span class="chip mono">timeout ${Math.round(i.timeout / 1000)}s</span>` : ""}
         ${i.dangerouslyDisableSandbox ? html`<span class="chip warn">${icon("alert", 11)} 샌드박스 해제</span>` : ""}
         ${secrets ? html`<span class="chip warn">${icon("lock", 11)} 비밀값 ${secrets}개 가림</span>` : ""}
-        ${exitChip}
-      </div>
+        </div>
     </div>
-    <div class="term-body" data-keep-scroll="term-${call.id}">
-      <div class="term-cmd">${raw(cmdHtml)}</div>${outText || errText || running
+    <div class="term-body term-sec in">
+      <div class="term-lab">입력</div>${shellCommandBlock(call, cmd, cmdHtml)}
+    </div>
+    <div class="term-body term-sec out" data-keep-scroll="term-${call.id}">
+      <div class="term-lab">출력${exitChip}</div>${outText || errText || running
         ? raw(
             `<div class="term-out">${outText ? outputHTML(call, outText, false, `out:${call.id}`) : ""}${errText ? `${outText ? "\n" : ""}${outputHTML(call, errText, true, `err:${call.id}`)}` : ""}${running ? '<span class="term-cursor" aria-hidden="true"></span>' : ""}</div>`,
           )

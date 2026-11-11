@@ -17,13 +17,24 @@ async function serverInfo() {
   }
 }
 
-async function healthy(info) {
+// The server file's modified time (seconds): a server started from an older copy is restarted.
+async function currentRev() {
+  try {
+    const out = await exec("stat", ["-f", "%m", `${appHome()}/mods/agent-dash/bin/server.py`]);
+    const rev = parseInt(String(out.stdout ?? "").trim(), 10);
+    return Number.isFinite(rev) ? rev : null;
+  } catch {
+    return null;
+  }
+}
+
+async function healthy(info, rev = null) {
   if (!info) return false;
   try {
     const response = await fetch(`http://127.0.0.1:${info.port}/health`);
     if (!response.ok) return false;
     const body = await response.json();
-    return body?.app === "agent-dash";
+    return body?.app === "agent-dash" && (rev === null || body.rev === rev);
   } catch {
     return false;
   }
@@ -53,7 +64,13 @@ export async function writeSpaces(list) {
 /** The page's address for {scope, lens, call}, starting the server first when it isn't up. */
 export async function webAddress(target) {
   let info = await serverInfo();
-  if (!(await healthy(info))) {
+  const rev = await currentRev();
+  if (!(await healthy(info, rev))) {
+    // An older copy may still hold the port or the name: stop it before starting the new one.
+    if (await healthy(info)) {
+      await exec("hc", ["kill", "agent-dash-web"]).catch(() => null);
+      await exec("sleep", ["0.5"]);
+    }
     await startServer();
     for (let i = 0; i < START_TRIES; i++) {
       await exec("sleep", ["0.25"]);

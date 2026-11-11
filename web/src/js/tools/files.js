@@ -302,7 +302,35 @@ function apiImage(agent, path) {
   return raw(`<img class="img-real" data-api-image="${esc(key)}" alt="${esc(baseName(path))}">`);
 }
 
+// A picture attached to a prompt: read out of the session's transcript by the server.
+function promptImage(agent, at, index) {
+  const key = `${agent}|${at}|${index}`;
+  const url = API_IMAGES.get(`p:${key}`);
+  const alt = `첨부한 이미지 ${index + 1}`;
+  if (url) return raw(`<img class="img-real pd-img" src="${esc(url)}" alt="${alt}">`);
+  return raw(`<img class="img-real pd-img" data-api-pimg="${esc(key)}" alt="${alt}">`);
+}
+
+function hydratePromptImages() {
+  for (const img of document.querySelectorAll("img[data-api-pimg]")) {
+    const key = img.dataset.apiPimg;
+    img.removeAttribute("data-api-pimg");
+    const [agent, at, index] = key.split("|");
+    api(`/api/prompt-image?agent=${encodeURIComponent(agent)}&at=${encodeURIComponent(at)}&i=${encodeURIComponent(index)}`)
+      .then((r) => r.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        API_IMAGES.set(`p:${key}`, url);
+        img.src = url;
+      })
+      .catch(() => {
+        img.replaceWith(Object.assign(document.createElement("div"), { className: "dim", textContent: "이 이미지는 기록에서 찾을 수 없어요" }));
+      });
+  }
+}
+
 function hydrateImages() {
+  hydratePromptImages();
   for (const img of document.querySelectorAll("img[data-api-image]")) {
     const key = img.dataset.apiImage;
     img.removeAttribute("data-api-image");

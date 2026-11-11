@@ -170,11 +170,13 @@
 .shead span { min-width: 0; font-size: 13px; color: var(--sd); }
 .slist { padding: 8px 0 12px; }
 .smsg { display: flex; gap: 8px; padding: 8px 20px; }
+.smsg > .grow { min-width: 0; overflow-wrap: anywhere; }
 .smsg:hover { background: #f8f8f8; }
-.sm-h { display: flex; gap: 8px; align-items: baseline; }
-.sm-h b { font-weight: 900; }
-.sm-h .ts { font-size: 12px; color: var(--sd); }
-.sm-h .app { align-self: center; padding: 0 3px; border-radius: 2px; background: #ebebeb; color: var(--sd); font-size: 10px; font-weight: 700; line-height: 15px; }
+.sm-h { display: flex; gap: 8px; align-items: center; min-width: 0; }
+/* The name gives way (cut with …) so the 앱 badge and the time always fit in the row. */
+.sm-h b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; }
+.sm-h .ts { flex: none; white-space: nowrap; font-size: 12px; color: var(--sd); }
+.sm-h .sx-app { flex: none; white-space: nowrap; padding: 0 4px; border-radius: 3px; background: #ebebeb; color: var(--sd); font-size: 10px; font-weight: 700; line-height: 16px; }
 .slack a { color: #1264a3; }
 .slack a:hover { text-decoration: underline; }
 .slack .rich > * + * { margin-top: 0.25em; }

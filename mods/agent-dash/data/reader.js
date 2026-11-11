@@ -79,6 +79,33 @@ export async function cachedImage(path) {
   return rel;
 }
 
+/** A picture the person attached to a prompt: it lives base64-encoded in the transcript, so it is
+ *  written out once into the cache (the app's image() reads from its own folder).
+ *  Returns the app-relative path, or null when the transcript no longer holds it. */
+export async function promptImage({ file, at, index }) {
+  const stem = `mods/agent-dash/.cache/prompt-${hashOf(`${file}|${at}|${index}`)}`;
+  await fs.mkdir(`${appHome()}/mods/agent-dash/.cache`, { recursive: true });
+  const { events } = await run(["image", file, String(at), String(index), `${appHome()}/${stem}`]);
+  const out = events[0];
+  // {path, w, h}: the size is the picture's own, so it can be drawn without stretching.
+  return out?.path ? { path: `${stem}.${out.path.split(".").pop()}`, w: out.w || 0, h: out.h || 0 } : null;
+}
+
+/** The picture of whoever uses the mod, for the chat view: a file in `.me/` (put there by you, or
+ *  fetched once for the GitHub account this computer is signed in with: see bin/me.py).
+ *  Returns the app-relative path, or null (then "나" is drawn). */
+export async function meAvatar() {
+  const r = await exec("python3", ["-I", `${appHome()}/mods/agent-dash/bin/me.py`, "ensure"], { timeout: 15000 });
+  let path = null;
+  try {
+    path = JSON.parse(r.stdout || "{}").path;
+  } catch {
+    path = null;
+  }
+  const prefix = `${appHome()}/`;
+  return path && path.startsWith(prefix) ? path.slice(prefix.length) : null;
+}
+
 /** The committed version, for Codex sessions that don't record originals. */
 export async function headText(cwd, path) {
   try {

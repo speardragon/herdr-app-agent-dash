@@ -272,13 +272,19 @@
   background: #28c840;
 }
 
+/* What the command is for (the model's own description of the call): white, larger, and right
+   beside the traffic lights. */
 .term-title {
   flex: 1;
   min-width: 0;
-  text-align: center;
-  font-size: var(--fs-sm);
-  color: var(--muted);
-  font-weight: 500;
+  text-align: left;
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.term-bar {
+  gap: 12px;
 }
 
 .term-chips {
@@ -323,6 +329,46 @@
   white-space: pre-wrap;
 }
 
+/* 입력 (the command) and 출력 (what it printed) are two sections: the input is tinted with an
+   accent bar down its edge, the output sits under a rule on a darker ground. */
+.term-sec .term-lab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.term-sec.in {
+  margin: 10px 10px 0;
+  border: 1px solid #b4b7be;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.term-sec.in .term-lab {
+  color: var(--accent);
+}
+
+.term-sec.out {
+  margin: 10px;
+  border: 1px solid #b4b7be;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.term-sec.out .term-lab {
+  color: var(--muted);
+}
+
+.term-sec .term-lab .chip {
+  height: 18px;
+  font-weight: 500;
+}
+
 .term-cwd {
   color: var(--dim);
   font-size: 12px;
@@ -331,6 +377,19 @@
 
 .term-cmd {
   color: var(--foreground);
+}
+
+.term-cmd.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.term-fold.cmd {
+  display: block;
+  margin: 4px 0 2px;
 }
 
 .term-cmd .tk-pun {

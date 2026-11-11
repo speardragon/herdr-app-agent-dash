@@ -6,6 +6,8 @@ const LIVE = {
   agents: [],
   spaces: [],
   spacesAt: 0,
+  lastFocus: null,
+  me: null,
   sessions: {},
   synced: {},
   busy: new Set(),
@@ -70,6 +72,9 @@ function parseEvents(text) {
 async function loadSpaces() {
   if (Date.now() - LIVE.spacesAt < 30000) return false;
   LIVE.spacesAt = Date.now();
+  // Your own picture for the chat view, asked once.
+  // (An older server answers with an error instead: ask again later, after it has been restarted.)
+  if (LIVE.me === null) LIVE.me = await api("/api/me").then((r) => r.json()).then((body) => ("avatar" in body ? body : null)).catch(() => null);
   try {
     const body = await (await api("/api/spaces")).json();
     const next = body.spaces ?? [];
@@ -79,6 +84,22 @@ async function loadSpaces() {
   } catch {
     return false;
   }
+}
+
+// Herdr's focus drives the page: when the agent in focus there changes, show that one. The first
+// reading only records it, so a link that opened a specific agent keeps it.
+async function followFocus() {
+  if (!STATE.followFocus) {
+    LIVE.lastFocus = null;
+    return false;
+  }
+  const at = (await (await api("/api/focus-state")).json()).agent;
+  if (!at || at === LIVE.lastFocus) return false;
+  const first = LIVE.lastFocus === null;
+  LIVE.lastFocus = at;
+  if (first || at === STATE.scope || !LIVE.agents.some((a) => a.address === at && a.provider)) return false;
+  go({ concept: "A", scope: at });
+  return true;
 }
 
 async function loadAgents() {
@@ -147,6 +168,7 @@ async function tick() {
       changed = (await loadAgents()) || changed;
       LIVE.agentsAt = Date.now();
     }
+    changed = (await followFocus().catch(() => false)) || changed;
     const due = LIVE.agents.filter((a) => a.provider && !LIVE.busy.has(a.address) && Date.now() - (LIVE.synced[a.address] ?? 0) >= readEvery(a));
     const results = await Promise.all(due.map((a) => syncAgent(a).catch(() => false)));
     changed = results.some(Boolean) || changed;

@@ -3,7 +3,8 @@
 A control room for the coding agents running in Herdr. Press `cmd+shift+a`, pick an agent,
 and read what it did. Every tool call gets a view made for that tool, and **Jira, Notion
 and Slack MCP calls are drawn the way those sites look**: an issue page, a Notion page, a
-Slack thread, instead of a wall of JSON.
+Slack thread, instead of a wall of JSON. Gmail, Google Calendar and Google Sheets calls get
+the same treatment.
 
 ![Agent Dash](preview.png)
 
@@ -25,6 +26,9 @@ input and output, and a button opens the real page.
 | Jira | `getJiraIssue`, `searchJiraIssuesUsingJql`, `createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, `addCommentToJiraIssue`, `getTransitionsForJiraIssue` | Breadcrumb, title, status lozenge, the details panel (assignee, reporter, parent, due date, priority, labels), the description and comments as rich text; a work-item table for a JQL search |
 | Notion | `notion-fetch`, `notion-search`, `notion-query-data-sources`, `notion-update-page`, `notion-create-pages` | A page with its breadcrumb, icon, properties and blocks (callouts, tables, code, to-dos, quotes); search results; database rows as a table; for writes, what was sent |
 | Slack | `slack_read_thread`, `slack_read_channel`, `slack_search_public`, `slack_search_public_and_private`, `slack_send_message` | A thread or channel with authors, times, mentions, links, code and reactions; search results as cards |
+| Gmail | `search_threads`, `list_drafts`, `get_thread`, `get_message`, `create_draft`, `update_draft`, `list_labels` | The inbox list (stars, senders, labels, dates, unread in bold), an open conversation, a compose window for a draft. Only the plain-text body is drawn, never the HTML |
+| Google Calendar | `list_events`, `search_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `suggest_time` | A schedule list grouped by day; an event card with Meet button, place, guests and their replies |
+| Google Sheets | `get_values`, `update_values`, `append_values`, `get_spreadsheet`, `batch_clear_values` | A grid with column letters and row numbers that follow the range, the formula bar, sheet tabs; written cells in green |
 
 The MCP servers send no profile pictures, so people are drawn as initials. Other MCP tools
 get their arguments as a table and the result as a JSON tree; MongoDB tools get a
@@ -35,7 +39,7 @@ Compass-like view. The data in these screenshots is a made-up sample project.
 | Lens | What you get |
 | --- | --- |
 | 개요 (overview) | Tokens, context use, activity by tool kind, changed files, what the agent is doing now, its last reply |
-| 도구 호출 (tool calls) | Every call, newest first, grouped under the prompt that caused it. Each tool has its own view: shell output with ANSI colors, diffs for edits, file reads with line ranges, grep and glob results, web fetches, MongoDB queries in a Compass-like view, and Jira, Notion and Slack results drawn like those sites |
+| 도구 호출 (tool calls) | Every call, newest first, grouped under the prompt that caused it. Each tool has its own view: shell output with ANSI colors, diffs for edits, file reads with line ranges, grep and glob results, web fetches, MongoDB queries in a Compass-like view, and Jira, Notion, Slack, Gmail, Google Calendar and Google Sheets results drawn like those sites |
 | 링크 (links) | Links from the conversation, split into the ones you sent and the ones the agent wrote, with the sentence around each |
 | 프롬프트 (prompts) | What you asked, and for each prompt the calls, time, changed files and the answer |
 | 변경 (changes) | Changed files with a cumulative diff (before the agent first touched the file → now) or edit by edit |
@@ -71,7 +75,14 @@ Read this before you install it. The mod works on your conversation history.
   and `git show` for the committed version of a changed file.
 - **Writes** only inside its own folder: `.cache/` (copies of images an agent read) and
   `.web/` (the web server's port and token).
-- **Network:** none, except the optional local web page below.
+- **Network:** the mod makes one request, once: your avatar for the prompt chat view
+  (below). The optional local web page loads its fonts from Google Fonts when you open it.
+- **Your avatar:** the prompt chat view shows your picture. It is fetched once from GitHub for
+  the account this computer is signed in with (the `user:` line of `~/.config/gh/hosts.yml`, a
+  GitHub noreply address in `git config user.email`, or `git config github.user`) and kept in
+  `.me/` inside the mod folder. To use another picture, put it at `.me/avatar.png` (or `.jpg`,
+  `.webp`, `.gif`). To fetch nothing, create an empty `.me/no-avatar` file. Without a picture,
+  "나" is drawn. A failed fetch is not retried for a day.
 - Secrets in commands and output (tokens, passwords, credential URLs) are masked as `••••`
   before they are drawn. The patterns are in `lib/tools.js`; they are not exhaustive.
 

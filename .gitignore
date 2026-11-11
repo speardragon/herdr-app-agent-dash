@@ -5,6 +5,8 @@ jsconfig.json
 # Written while the mod runs (web server state, copied images)
 mods/agent-dash/.web/
 mods/agent-dash/.cache/
+# Your own picture for the chat view (put one at .me/avatar.png|jpg|webp|gif)
+mods/agent-dash/.me/
 # Build check output
 web/dist/
 __pycache__/

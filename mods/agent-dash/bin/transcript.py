@@ -15,9 +15,12 @@ read again from `offset` while `more` is true. A missing end line means the outp
 Standard library only, so it runs wherever python3 does.
 """
 
+import base64
 import glob
 import json
 import os
+import re
+import struct
 import subprocess
 import sys
 import time
@@ -53,12 +56,17 @@ def read(provider, path, offset, budget, out=None, seen=None):
             # A line without its newline is still being written: leave it for the next read.
             if not raw or not raw.endswith(b"\n"):
                 break
+            start = pos
             pos += len(raw)
             try:
                 events = consume(raw)
             except (ValueError, KeyError, TypeError, AttributeError):
                 events = [{"k": "skip", "bytes": len(raw)}]
             for event in events:
+                # Where an image-bearing prompt sits in the file, so its pictures can be fetched later
+                # (they are not part of the event stream: each is 50-500 KB of base64).
+                if event.get("k") == "prompt" and event.get("images"):
+                    event["at"] = start
                 if seen:
                     seen(event)
                 written += write(event, out)
@@ -204,6 +212,98 @@ def history_dir(transcript):
     return os.path.join(claude_home(), "file-history", session)
 
 
+IMAGE_EXT = {"image/png": "png", "image/jpeg": "jpg", "image/jpg": "jpg", "image/gif": "gif", "image/webp": "webp"}
+IMAGE_LIMIT = 15 * 1024 * 1024
+
+
+def _image_blocks(node, out):
+    """Image payloads inside one transcript line, in order: Claude's {type: image, source: {type: base64}}
+    and Codex's {type: input_image, image_url: "data:..."}."""
+    if isinstance(node, dict):
+        kind = node.get("type")
+        if kind == "image" and isinstance(node.get("source"), dict) and node["source"].get("type") == "base64":
+            out.append((node["source"].get("media_type") or "image/png", node["source"].get("data") or ""))
+            return
+        if kind == "input_image" and isinstance(node.get("image_url"), str):
+            m = re.match(r"data:([^;,]+);base64,(.*)$", node["image_url"], re.S)
+            if m:
+                out.append((m.group(1), m.group(2)))
+            return
+        for value in node.values():
+            _image_blocks(value, out)
+    elif isinstance(node, list):
+        for value in node:
+            _image_blocks(value, out)
+
+
+def prompt_image(path, at, index):
+    """(media type, bytes) of the `index`-th picture of the prompt line starting at byte `at`, or None."""
+    with open(path, "rb") as fh:
+        fh.seek(at)
+        raw = fh.readline()
+    if not raw.endswith(b"\n"):
+        return None
+    found = []
+    _image_blocks(json.loads(raw), found)
+    if not 0 <= index < len(found):
+        return None
+    media, data = found[index]
+    if media not in IMAGE_EXT:
+        return None
+    blob = base64.b64decode(data, validate=False)
+    return (media, blob) if len(blob) <= IMAGE_LIMIT else None
+
+
+def image_size(media, blob):
+    """(width, height) read from the picture's own header, or (0, 0)."""
+    try:
+        if media == "image/png" and blob[:8] == b"\x89PNG\r\n\x1a\n":
+            return struct.unpack(">II", blob[16:24])
+        if media == "image/gif" and blob[:3] == b"GIF":
+            return struct.unpack("<HH", blob[6:10])
+        if media in ("image/jpeg", "image/jpg"):
+            i = 2
+            while i + 9 < len(blob):
+                if blob[i] != 0xFF:
+                    i += 1
+                    continue
+                marker = blob[i + 1]
+                if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                    h, w = struct.unpack(">HH", blob[i + 5:i + 9])
+                    return w, h
+                i += 2 + struct.unpack(">H", blob[i + 2:i + 4])[0]
+        if media == "image/webp" and blob[:4] == b"RIFF" and blob[8:12] == b"WEBP":
+            kind = blob[12:16]
+            if kind == b"VP8X":
+                return 1 + int.from_bytes(blob[24:27], "little"), 1 + int.from_bytes(blob[27:30], "little")
+            if kind == b"VP8L":
+                bits = int.from_bytes(blob[21:25], "little")
+                return (bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1
+            if kind == b"VP8 ":
+                w, h = struct.unpack("<HH", blob[26:30])
+                return w & 0x3FFF, h & 0x3FFF
+    except (struct.error, IndexError):
+        pass
+    return 0, 0
+
+
+def image(path, at, index, stem):
+    """Writes the picture to `<stem>.<ext>` and reports {path} (or {missing})."""
+    try:
+        found = prompt_image(path, int(at), int(index))
+    except (ValueError, OSError):
+        found = None
+    if not found:
+        write({"missing": True})
+        return
+    out = f"{stem}.{IMAGE_EXT[found[0]]}"
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "wb") as fh:
+        fh.write(found[1])
+    width, height = image_size(found[0], found[1])
+    write({"path": out, "media": found[0], "bytes": len(found[1]), "w": width, "h": height})
+
+
 def original(path, target):
     with open(path, "rb") as fh:
         result = tx_claude.original(fh, target, history_dir(path))
@@ -220,6 +320,8 @@ def main(argv):
             read(argv[2], argv[3], int(argv[4]), int(argv[5]) if len(argv) > 5 else DEFAULT_BUDGET)
         elif command == "original":
             original(argv[2], argv[3])
+        elif command == "image":
+            image(argv[2], argv[3], argv[4], argv[5])
         else:
             raise IndexError(command)
     except (IndexError, KeyError, ValueError) as error:

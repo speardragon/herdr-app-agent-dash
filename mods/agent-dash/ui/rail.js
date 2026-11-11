@@ -4,7 +4,7 @@
 import { div, image } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { alpha, icon, programIcon, statusGlyph, subGlyph, treeLines, STATUS_LABEL, STATUS_RANK, scrollArea } from "./kit.js";
-import { fmtDurShort } from "../lib/format.js";
+import { fmtDurShort, inkOn } from "../lib/format.js";
 import { descendants, urgentStatus } from "../lib/tree.js";
 
 const GROUPS = ["blocked", "working", "done", "idle"];
@@ -23,6 +23,9 @@ export function railRows(roster, now = Date.now()) {
     .flatMap((r) => [{ node: r.node, lines: [], group: status }, ...descendants(roster, r.node.address, inRail(now)).map((d) => ({ ...d, group: status }))]));
 }
 
+// The selected row is marked by position too (a bar on its left edge), not by its background alone.
+const selBar = (t) => div().absolute().left(0).top(7).bottom(7).w(2).rounded(1).bg(t.accent);
+
 function activity(agent, terminal) {
   const msg = terminal?.report?.msg;
   if (agent.status === "working" && msg) return msg;
@@ -39,7 +42,7 @@ function agentRow(agent, terminal, selected, compact, t, now, onPick) {
   const row = h_flex().id(`rail-${agent.address}`).w_full().flex_none().gap(9).items_center().cursor_pointer()
     .px(compact ? 0 : 16).h(compact ? 40 : 46)
     .when(compact, (e) => e.justify_center())
-    .when(selected, (e) => e.bg(t.selected))
+    .relative().when(selected, (e) => e.bg(t.selected).child(selBar(t)))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .on_click((_e, cx) => onPick(agent.address, cx))
     .child(div().relative().flex_none().child(programIcon(agent.program, compact ? 24 : 22, t))
@@ -61,7 +64,7 @@ function subRow(row, selected, compact, t, onPick) {
   const { node } = row;
   const ended = node.state === "ended";
   const el = h_flex().id(`rail-${node.address}`).w_full().flex_none().items_center().pl(8).cursor_pointer().h(SUB_H)
-    .when(selected, (e) => e.bg(t.selected))
+    .relative().when(selected, (e) => e.bg(t.selected).child(selBar(t)))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .on_click((_e, cx) => onPick(node.address, cx));
   if (compact) {
@@ -96,7 +99,7 @@ function spaceAvatar(space, opts, t, size = 18) {
   if (logo?.emoji) return box.text_size(Math.round(size * 0.83)).child(div().child(logo.emoji));
   const color = opts.colors?.[space.id] ?? "ansi6";
   const fill = color.startsWith("#") ? color : SPACE_MARK[color] ?? t[color] ?? t.accent;
-  return box.bg(fill).text_size(Math.round(size * 0.67)).font_bold().text_color("#ffffff").child([...(space.name ?? "?")][0]?.toUpperCase() ?? "?");
+  return box.bg(fill).text_size(Math.round(size * 0.67)).font_bold().text_color(inkOn(fill, t.accent_foreground ?? "#21252b")).child([...(space.name ?? "?")][0]?.toUpperCase() ?? "?");
 }
 
 // The strip left of a row that carries the line: `through` runs it past the row, `tick` adds the stub.
@@ -106,6 +109,16 @@ function gutter(t, h, { through, tick }) {
   return div().relative().w(AVATAR_X + TICK + 4).h(h).flex_none()
     .child(div().absolute().left(AVATAR_X).top(0).w(1).h(through ? h : mid).bg(color))
     .when(tick, (e) => e.child(div().absolute().left(AVATAR_X).top(mid).w(TICK).h(1).bg(color)));
+}
+
+// Herdr's focus drives which agent is shown: on = the dashboard follows it.
+function followToggle(on, onToggle, t) {
+  return h_flex().id("follow-focus").h(24).px(7).gap(5).items_center().rounded(12).cursor_pointer().text_size(11.5)
+    .bg(on ? alpha(t.accent, 0.16) : t.raised).text_color(on ? t.accent : t.dim)
+    .hover((s) => s.bg(on ? alpha(t.accent, 0.24) : t.hover))
+    .tooltip(on ? "Herdr에서 포커스한 에이전트를 따라가요 (끄려면 클릭)" : "Herdr 포커스를 따라가지 않아요 (켜려면 클릭)")
+    .on_click((_e, cx) => onToggle(!on, cx))
+    .child(icon("link", 12, on ? t.accent : t.dim)).child("포커스");
 }
 
 function spaceRow(space, mine, open, first, opts, t) {
@@ -133,7 +146,7 @@ function spaceAgentRow(agent, terminal, selected, last, t, now, onPick) {
   return h_flex().w_full().h(AGENT_H).flex_none().items_center().pl(8)
     .child(gutter(t, AGENT_H, { through: !last, tick: true }))
     .child(h_flex().id(`rail-${agent.address}`).flex_1().min_w(0).h(AGENT_H - 1).px(7).gap(8).rounded(7).items_center().cursor_pointer()
-      .when(selected, (e) => e.bg(t.selected))
+      .relative().when(selected, (e) => e.bg(t.selected).child(selBar(t)))
       .hover((s) => s.bg(selected ? t.selected : t.hover))
       .on_click((_e, cx) => onPick(agent.address, cx))
       .child(programIcon(agent.program, 16, t))
@@ -148,7 +161,7 @@ function spaceSubRow(row, selected, through, t, onPick) {
   return h_flex().w_full().h(SUB_H).flex_none().items_center().pl(8)
     .child(gutter(t, SUB_H, { through, tick: false }))
     .child(h_flex().id(`rail-${node.address}`).flex_1().min_w(0).h(SUB_H - 1).pl(14).pr(7).rounded(7).items_center().cursor_pointer()
-      .when(selected, (e) => e.bg(t.selected))
+      .relative().when(selected, (e) => e.bg(t.selected).child(selBar(t)))
       .hover((s) => s.bg(selected ? t.selected : t.hover))
       .on_click((_e, cx) => onPick(node.address, cx))
       .children(treeLines(row.lines, t, SUB_H))
@@ -216,7 +229,7 @@ function fleetRow(selected, counts, compact, t, onPick) {
   const row = h_flex().id("rail-all").w_full().flex_none().gap(9).items_center().cursor_pointer()
     .px(compact ? 0 : 16).h(compact ? 40 : 38)
     .when(compact, (e) => e.justify_center())
-    .when(selected, (e) => e.bg(t.selected))
+    .relative().when(selected, (e) => e.bg(t.selected).child(selBar(t)))
     .hover((s) => s.bg(selected ? t.selected : t.hover))
     .on_click((_e, cx) => onPick("all", cx))
     .child(div().size(compact ? 24 : 22).flex_none().rounded(6).bg(t.raised).flex().items_center().justify_center().child(icon("grid", 13, selected ? t.foreground : t.muted)));
@@ -253,7 +266,9 @@ export function rail(opts, t) {
     .child(h_flex().h(44).flex_none().px(compact ? 0 : 14).gap(8).items_center().when(compact, (e) => e.justify_center())
       .child(icon("layers", 15, t.accent))
       .when(!compact, (e) => e.child(div().text_size(13).font_semibold().text_color(t.foreground).child("에이전트")).child(div().text_size(12).text_color(t.dim).child(String(roster.roots.length)))
-        .when(subs > 0, (x) => x.child(div().text_size(11).text_color(t.dim).child(`· 하위 ${subs}`)))))
+        .when(subs > 0, (x) => x.child(div().text_size(11).text_color(t.dim).child(`· 하위 ${subs}`)))
+        .child(div().flex_1())
+        .when(Boolean(opts.onFollowFocus), (x) => x.child(followToggle(Boolean(opts.followFocus), opts.onFollowFocus, t)))))
     .when(!compact && Boolean(opts.onGroup), (e) => e.child(groupTabs(opts.group ?? "status", opts.onGroup, t)))
     .child(scrollArea("rail-scroll", v_flex().pb(10).children(items)))
     .when(offline.length > 0 && !compact, (e) => e.child(v_flex().flex_none().p(10).gap(4).border_t(1).border_color(t.border).children(offline.map((m) =>

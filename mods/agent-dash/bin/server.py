@@ -27,6 +27,7 @@ from urllib.parse import parse_qs, urlparse
 BIN = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BIN)
 
+import me  # noqa: E402
 import transcript  # noqa: E402
 import tx_claude  # noqa: E402
 
@@ -66,10 +67,27 @@ def provider_of(app):
     return "claude" if "claude" in app else "codex" if "codex" in app else None
 
 
+# Which version of this file is running: the mod restarts a server whose rev is not the file's.
+SERVER_REV = int(os.path.getmtime(os.path.abspath(__file__)))
 APP_HOME = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
 LOGO_DIR = os.path.join(APP_HOME, "ray-sidebar", "logos")
 LOGO_LIMIT = 512 * 1024
 MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml"}
+
+
+def me_avatar():
+    """The picture of whoever uses the mod (see me.py: a file in `.me/`, or the GitHub account this
+    computer is signed in with, fetched once) as a data URI, or None."""
+    try:
+        full = me.ensure()
+    except (OSError, ValueError):
+        full = None
+    if full and os.path.isfile(full) and os.path.getsize(full) <= LOGO_LIMIT:
+        ext = os.path.splitext(full)[1].lower()
+        if ext in MIME:
+            with open(full, "rb") as fh:
+                return f"data:{MIME[ext]};base64,{base64.b64encode(fh.read()).decode()}"
+    return None
 
 
 def read_spaces():
@@ -317,7 +335,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(403, "forbidden", "text/plain")
         url = urlparse(self.path)
         if url.path == "/health":
-            return self.json({"ok": True, "app": "agent-dash"})
+            return self.json({"ok": True, "app": "agent-dash", "rev": SERVER_REV})
         if url.path in ("/", "/index.html"):
             return self.static(os.path.join(WEB, "index.html"), "text/html; charset=utf-8")
         m = re.fullmatch(r"/lib/([a-z0-9_-]+\.js)", url.path)
@@ -341,6 +359,16 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(200, fh.read(), kind)
 
     def api(self, path, q):
+        if path == "/api/focus-state":
+            exe = herdr_app()
+            code, out = run([exe, "status"], timeout=3) if exe else (1, "")
+            try:
+                agent = json.loads(out).get("agent") if code == 0 else None
+            except ValueError:
+                agent = None
+            return self.json({"agent": agent})
+        if path == "/api/me":
+            return self.json({"avatar": me_avatar()})
         if path == "/api/spaces":
             return self.json({"spaces": read_spaces()})
         if path == "/api/agents":
@@ -356,6 +384,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.json({"ok": code == 0}, 200 if code == 0 else 500)
         if path == "/api/image":
             return self.image(agent, q.get("path", ""))
+        if path == "/api/prompt-image":
+            return self.prompt_image(agent, q.get("at", ""), q.get("i", ""))
         target = q.get("path", "")
         if not target or not SESSIONS.allowed(agent["address"], target):
             return self.json({"error": "not a file this session changed"}, 403)
@@ -402,6 +432,19 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(413, "too large", "text/plain")
         with open(target, "rb") as fh:
             return self.reply(200, fh.read(), kind)
+
+    def prompt_image(self, agent, at, index):
+        """A picture the person attached to a prompt of this session (from its transcript)."""
+        file = SESSIONS.files.get(agent["address"])
+        if not file or not at.isdigit() or not index.isdigit():
+            return self.reply(404, "not found", "text/plain")
+        try:
+            found = transcript.prompt_image(file, int(at), int(index))
+        except (OSError, ValueError):
+            found = None
+        if not found:
+            return self.reply(404, "not found", "text/plain")
+        return self.reply(200, found[1], found[0])
 
     def head(self, agent, target):
         cwd = agent.get("cwd") or os.path.dirname(target)
