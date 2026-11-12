@@ -60,6 +60,9 @@ def assistant(obj):
             continue
         if block.get("type") == "text" and not side and str(block.get("text", "")).strip():
             events.append({"k": "reply", "id": obj.get("uuid"), "mid": msg.get("id"), "ts": ts, "text": cap(block["text"], RESULT_LIMIT)})
+        elif block.get("type") == "thinking" and not side and str(block.get("thinking") or "").strip():
+            # Only the short summary the transcript keeps (most thinking blocks are stored empty).
+            events.append({"k": "think", "ts": ts, "text": cap(block["thinking"], RESULT_LIMIT)})
         elif block.get("type") == "tool_use":
             events.append(drop_none({
                 "k": "call", "id": block.get("id"), "ts": ts, "name": block.get("name"),
