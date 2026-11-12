@@ -39,9 +39,9 @@ Compass-like view. The data in these screenshots is a made-up sample project.
 | Lens | What you get |
 | --- | --- |
 | 개요 (overview) | Tokens, context use, activity by tool kind, changed files, what the agent is doing now, its last reply |
-| 도구 호출 (tool calls) | Every call, newest first, grouped under the prompt that caused it. Each tool has its own view: shell output with ANSI colors, diffs for edits, file reads with line ranges, grep and glob results, web fetches, MongoDB queries in a Compass-like view, and Jira, Notion, Slack, Gmail, Google Calendar and Google Sheets results drawn like those sites |
+| 도구 호출 (tool calls) | Every call, newest first, grouped under the prompt that caused it (the prompt of the calls on screen stays pinned at the bottom). Each tool has its own view: shell output with ANSI colors, diffs for edits, file reads with line ranges, grep and glob results, web fetches, MongoDB queries in a Compass-like view, and Jira, Notion, Slack, Gmail, Google Calendar and Google Sheets results drawn like those sites |
 | 링크 (links) | Links from the conversation, split into the ones you sent and the ones the agent wrote, with the sentence around each |
-| 프롬프트 (prompts) | What you asked, and for each prompt the calls, time, changed files and the answer |
+| 프롬프트 (prompts) | What you asked, and for each prompt the calls, time, changed files and the conversation as a chat: your message, every answer, and the agent's thinking summaries (folded under "생각함", when the transcript kept them). "전체 대화" opens the whole conversation with that agent, with a line for each day, the time beside each bubble, and buttons to the first and the last message |
 | 변경 (changes) | Changed files with a cumulative diff (before the agent first touched the file → now) or edit by edit |
 | 하위 에이전트 (sub-agents) | The terminals an agent started with `hc run`, as a tree, with each one's task, steps and last reply |
 

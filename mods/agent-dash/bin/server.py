@@ -495,11 +495,15 @@ def main(argv):
     try:
         server.serve_forever()
     finally:
-        for name in ("port",):
-            try:
-                os.remove(os.path.join(STATE, name))
-            except OSError:
-                pass
+        # Only our own port file: a newer copy started meanwhile has already written its own.
+        try:
+            path = os.path.join(STATE, "port")
+            with open(path, encoding="utf-8") as fh:
+                ours = fh.read().strip() == str(server.server_address[1])
+            if ours:
+                os.remove(path)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":
