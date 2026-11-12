@@ -247,15 +247,20 @@ function sessionPart(a, s) {
   });
   const linksByReply = groupBy(s.links.filter((l) => l.from !== "user"), (l) => l.reply);
   const linksByPrompt = groupBy(s.links.filter((l) => l.from === "user"), (l) => l.prompt);
+  // What the agent thought on the way to each answer; thoughts with no answer after them trail the turn.
+  const answered = new Set(s.replies.map((r) => `${r.turn}:${r.n}`));
+  const thoughtsByReply = groupBy((s.thoughts ?? []).filter((x) => answered.has(`${x.turn}:${x.before}`)), (x) => x.before);
+  const trailingByTurn = groupBy((s.thoughts ?? []).filter((x) => !answered.has(`${x.turn}:${x.before}`)), (x) => x.turn);
   const value = {
     calls,
     // Links the person handed over in a prompt (the agent's are on its replies, below).
     prompts: s.prompts.map((p) => ({
-      ...p, agent: a.address, t: ms(p.ts),
+      ...p, agent: a.address, t: ms(p.ts), trailing: trailingByTurn[p.n] ?? [],
       links: (linksByPrompt[p.n] ?? []).map((l, k) => ({ url: l.url, label: l.label, title: l.title, context: l.context, local: l.local, n: k + 1, badge: l.badge ? { cls: BADGE_CLS[l.badge.kind] ?? "", text: l.badge.text } : null })),
     })),
     replies: s.replies.map((r) => ({
       ...r,
+      thoughts: thoughtsByReply[r.n] ?? [],
       agent: a.address,
       t: ms(r.ts),
       links: (linksByReply[r.n] ?? []).map((l, k) => ({ url: l.url, label: l.label, title: l.title, context: l.context, local: l.local, n: k + 1, badge: l.badge ? { cls: BADGE_CLS[l.badge.kind] ?? "", text: l.badge.text } : null })),

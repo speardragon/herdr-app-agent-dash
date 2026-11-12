@@ -73,13 +73,15 @@ function callListView() {
       .map((turn) => {
         const p = prompts.find((x) => x.n === turn);
         const quiet = !p || p.kind === "notice" || p.kind === "answer";
-        const label = p ? (p.display ?? p.text).split("\n").find((l) => l.trim()) || (p.images ? `이미지 ${p.images}개` : "") : "프롬프트 전";
+        const label = p ? (p.display ?? p.text).trim() || (p.images ? `이미지 ${p.images}개` : "") : "프롬프트 전";
         // The list reads from the bottom up: a turn's calls, then the prompt that caused them.
-        return html`${byTurn[turn].map((c) => callRow(c, c.id === sel))}<div class="list-sep ${quiet ? "quiet" : ""}">
+        // Each turn is one group; its prompt band is pinned to the bottom of the list while the
+        // group's calls are on screen, and sits under them once they have scrolled past.
+        return html`<div class="tgroup">${byTurn[turn].map((c) => callRow(c, c.id === sel))}<div class="list-sep ${quiet ? "quiet" : ""}">
           <span class="turn-n">#${turn}</span>${icon(quiet ? "info" : "message", 12)}
           ${p ? html`<button class="q" data-action="open-prompt" data-agent="${STATE.scope}" data-prompt="${turn}" title="이 프롬프트 보기">${label}</button>` : html`<span class="q">${label}</span>`}
           <span class="meta">호출 ${byTurn[turn].length}${p ? ` · ${relTime(p.ts)}` : ""}</span>
-        </div>`;
+        </div></div>`;
       });
   }
   return html`<div class="list-tools">

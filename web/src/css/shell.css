@@ -839,16 +839,36 @@
   font-weight: 700;
 }
 
+/* Two lines of the prompt at most, then … */
 .list-sep .q {
   flex: 1;
   min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   color: var(--foreground);
   font-size: var(--fs-sm);
   font-weight: 600;
+  line-height: 1.4;
   text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The prompt band of the turn on screen stays at the bottom of the list. It needs a solid
+   ground (the band itself is a tint) so the calls scrolling under it do not show through. */
+.tgroup > .list-sep {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  background: linear-gradient(color-mix(in srgb, var(--accent) 9%, transparent), color-mix(in srgb, var(--accent) 9%, transparent)), var(--chrome);
+  box-shadow: 0 -8px 10px -6px rgba(0, 0, 0, 0.35);
+}
+
+.tgroup > .list-sep.quiet {
+  background: linear-gradient(color-mix(in srgb, var(--dim) 6%, transparent), color-mix(in srgb, var(--dim) 6%, transparent)), var(--chrome);
 }
 
 .list-sep button.q:hover {

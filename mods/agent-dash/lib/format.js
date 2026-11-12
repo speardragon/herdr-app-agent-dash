@@ -115,3 +115,70 @@ const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math
 /** The text color to put on a filled box: white or the dark ink, whichever reads better
  *  (white on a yellow or mint box is under 2:1). */
 export const inkOn = (fill, dark = "#21252b") => (contrast(fill, "#ffffff") >= contrast(fill, dark) ? "#ffffff" : dark);
+
+// Hangul and other wide glyphs take about one em; Latin and digits about half.
+const emOf = (ch) => (/[\u1100-\u11ff\u2e80-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(ch) ? 1 : /\s/.test(ch) ? 0.3 : 0.56);
+
+/** `text` as at most `lines` lines that fit `width` px at `size` px, the last one ending in "…"
+ *  when more was left. The gpui kit has no line clamp, so the width is estimated from the
+ *  glyphs; each line is then drawn on its own row with a single-line ellipsis as a safety net. */
+export function clampLines(text, width, size, lines = 2) {
+  const budget = Math.max(3, Math.floor(width / size));
+  const source = String(text ?? "").replace(/\r/g, "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const out = [];
+  let more = false;
+  for (let i = 0; i < source.length; i++) {
+    let rest = source[i];
+    while (rest) {
+      if (out.length === lines) {
+        more = true;
+        break;
+      }
+      let used = 0;
+      let cut = 0;
+      for (const ch of rest) {
+        used += emOf(ch);
+        if (used > budget) break;
+        cut += ch.length;
+      }
+      if (cut >= rest.length) {
+        out.push(rest);
+        rest = "";
+      } else {
+        // Break at the last space inside the line when there is one past its first third.
+        const at = rest.lastIndexOf(" ", cut);
+        const stop = at > cut / 3 ? at : cut;
+        out.push(rest.slice(0, stop).trimEnd());
+        rest = rest.slice(stop).trimStart();
+      }
+    }
+    if (more) break;
+  }
+  const total = source.reduce((n, l) => n + l.length, 0);
+  const shown = out.reduce((n, l) => n + l.length, 0);
+  if (shown < total * 0.98 - 2) more = true;
+  if (more && out.length) out[out.length - 1] = `${out[out.length - 1].replace(/[\s.,;:]+$/, "")}…`;
+  return out;
+}
+
+// "오후 2:52", as a chat shows it.
+export function clock12(ms) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  const h = d.getHours();
+  return `${h < 12 ? "오전" : "오후"} ${h % 12 || 12}:${pad(d.getMinutes())}`;
+}
+
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+/** "2026년 11월 12일 목요일": the line a chat puts between two days. */
+export function dayFull(ms) {
+  const d = new Date(ms);
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${WEEKDAYS[d.getDay()]}요일`;
+}
+
+/** A number that is the same for two times on the same day (local time). */
+export function dayOf(ms) {
+  const d = new Date(ms);
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}

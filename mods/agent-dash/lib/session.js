@@ -26,6 +26,8 @@ export function emptySession(provider, found = {}) {
     version: null,
     prompts: [],
     replies: [],
+    thoughts: [],
+    lastTs: null,
     calls: [],
     callIx: {},
     usageByMsg: {},
@@ -99,6 +101,9 @@ function recordEdit(files, call) {
   touchFile(files, path, call, editStats(call), created ? "A" : "M");
 }
 
+// The events whose time says when the agent last did something (a thought's length is measured from it).
+const CLOCKED = new Set(["prompt", "reply", "call", "result", "think"]);
+
 function applyOne(acc, e) {
   const turn = acc.prompts.length;
   switch (e.k) {
@@ -115,6 +120,13 @@ function applyOne(acc, e) {
       const reply = { n: acc.replies.length + 1, turn, id: e.id, ts: e.ts, text: e.text ?? "", phase: e.phase ?? null };
       acc.replies.push(reply);
       for (const link of extractLinks(reply)) acc.links.push({ ...link, from: "agent", reply: reply.n, turn, ts: reply.ts, key: `${reply.n}:${link.url}` });
+      break;
+    }
+    case "think": {
+      // How long it thought: the time since whatever happened just before (a result, a prompt).
+      const before = acc.scalars.lastTs;
+      const dur = before && e.ts && e.ts > before && e.ts - before < 30 * 60 * 1000 ? e.ts - before : null;
+      acc.thoughts.push({ n: acc.thoughts.length + 1, turn, ts: e.ts, text: e.text ?? "", dur, before: acc.replies.length + 1 });
       break;
     }
     case "call":
@@ -181,6 +193,7 @@ export function applyBatch(state, events, end) {
   const acc = {
     prompts: state.prompts.slice(),
     replies: state.replies.slice(),
+    thoughts: (state.thoughts ?? []).slice(),
     calls: state.calls.slice(),
     callIx: { ...state.callIx },
     usageByMsg: { ...state.usageByMsg },
@@ -192,10 +205,13 @@ export function applyBatch(state, events, end) {
     files: { ...state.files },
     scalars: {
       model: state.model, title: state.title, customTitle: state.customTitle, cwd: state.cwd, version: state.version,
-      usage: state.usage, ctx: state.ctx, win: state.win, wrappers: state.wrappers,
+      usage: state.usage, ctx: state.ctx, win: state.win, wrappers: state.wrappers, lastTs: state.lastTs ?? null,
     },
   };
-  for (const e of events) applyOne(acc, e);
+  for (const e of events) {
+    applyOne(acc, e);
+    if (e.ts && CLOCKED.has(e.k)) acc.scalars.lastTs = e.ts;
+  }
   const { scalars, ...lists } = acc;
   return {
     ...state,
@@ -276,7 +292,10 @@ export function turnsOf(s) {
 export function turnDetail(s, n) {
   const calls = [];
   for (const c of s.calls) if (c.turn === n) calls.push(c);
-  const replies = s.replies.filter((r) => r.turn === n);
+  // Each answer carries what the agent thought on the way to it; thoughts after the last answer trail.
+  const thoughts = (s.thoughts ?? []).filter((x) => x.turn === n);
+  const replies = s.replies.filter((r) => r.turn === n).map((r) => ({ ...r, thoughts: thoughts.filter((x) => x.before === r.n) }));
+  const trailing = thoughts.filter((x) => !replies.some((r) => r.n === x.before));
   const files = new Map();
   for (const c of calls) {
     const path = c.input?.file_path;
@@ -288,5 +307,5 @@ export function turnDetail(s, n) {
     for (const [path] of Object.entries(c.name === "apply_patch" ? c.input?.changes ?? {} : {})) files.set(path, files.get(path) ?? { path, add: 0, del: 0 });
   }
   const end = Math.max(s.prompts[n - 1]?.ts ?? 0, calls.length ? calls[calls.length - 1].result?.ts ?? calls[calls.length - 1].ts : 0, replies.length ? replies[replies.length - 1].ts : 0);
-  return { calls, replies, files: [...files.values()], end };
+  return { calls, replies, trailing, files: [...files.values()], end };
 }

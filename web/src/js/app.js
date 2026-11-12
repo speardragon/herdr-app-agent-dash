@@ -38,6 +38,7 @@ const STATE = {
   follow: true,
   unseenCalls: {},
   ui: {},
+  chat: null, // the whole-conversation view: { agent, from, to } (turn numbers; to null = up to the latest)
   openFolds: new Set(),
   diff: { view: "diff", mode: "unified", wrap: false, tree: true },
   live: !reducedMotion(),
@@ -139,6 +140,7 @@ function renderAll() {
   renderPalette();
   renderHelp();
   hydrateImages();
+  chatFabSync();
 }
 
 function tickClocks() {
@@ -262,6 +264,39 @@ const ACTIONS = {
     resetStageScroll();
   },
   "open-call": (el) => (el.dataset.call ? openCall(el.dataset.agent, el.dataset.call) : go({ concept: "A", scope: el.dataset.agent, lens: "tools" })),
+  "chat-open": (el) => {
+    STATE.chat = chatWindow(el.dataset.agent, Number(el.dataset.prompt));
+    renderAll();
+    requestAnimationFrame(() => {
+      $(`#chat-p-${el.dataset.prompt}`)?.scrollIntoView({ block: "start" });
+      chatFabSync();
+    });
+  },
+  "chat-jump": (el) => {
+    const win = STATE.chat;
+    if (!win) return;
+    const total = promptsOf(win.agent).length;
+    const first = el.dataset.where === "first";
+    STATE.chat = first ? { ...win, from: 1, to: CHAT_PAGE >= total ? null : CHAT_PAGE } : { ...win, from: Math.max(1, total - CHAT_PAGE + 1), to: null };
+    renderAll();
+    requestAnimationFrame(() => {
+      const body = $(".chat-all-body");
+      if (body) body.scrollTop = first ? 0 : body.scrollHeight;
+      chatFabSync();
+    });
+  },
+  "chat-close": () => {
+    STATE.chat = null;
+    renderAll();
+  },
+  "chat-more": (el) => {
+    const win = STATE.chat;
+    if (!win) return;
+    const total = promptsOf(win.agent).length;
+    const to = win.to == null ? total : win.to;
+    STATE.chat = el.dataset.dir === "older" ? { ...win, from: Math.max(1, win.from - CHAT_PAGE) } : { ...win, to: to + CHAT_PAGE >= total ? null : to + CHAT_PAGE };
+    renderAll();
+  },
   "open-prompt": (el) => openPrompt(el.dataset.agent, Number(el.dataset.prompt)),
   "open-file": (el) => openFile(el.dataset.agent, el.dataset.path),
   "open-lens": (el) => go({ concept: "A", scope: el.dataset.agent, lens: el.dataset.lens }),

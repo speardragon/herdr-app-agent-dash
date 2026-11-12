@@ -2,7 +2,7 @@
 // then read what it did through five lenses: overview, tool calls, links, prompts, changes.
 
 import { View, div } from "gpui-kit";
-import { h_flex, v_flex, h_resizable, resizable_panel, VirtualListScrollHandle } from "gpui-base";
+import { h_flex, v_flex, h_resizable, resizable_panel, VirtualListScrollHandle, ScrollHandle } from "gpui-base";
 import { agents, terminals, panes, machines, spaces, shared, home, run, notify, setAgentOrder, nextCommand, props, closeOverlay, focused } from "herdr";
 import { SessionStore } from "./data/store.js";
 import * as reader from "./data/reader.js";
@@ -32,13 +32,18 @@ const decodeValue = (v) => (v === "true" ? true : v === "false" ? false : v != n
 const RAIL_WIDE = 264;
 const RAIL_NARROW = 60;
 
+const CHAT_PAGE = 8; // turns the whole-conversation view opens with (and adds per "더 보기")
+
 export default class AgentDash extends View {
   init(_props, cx) {
     this.store = new SessionStore();
     this.handle = cx.focus_handle();
     this.scroll = VirtualListScrollHandle.new();
+    this.chatScroll = ScrollHandle.new();
+    this.chatJump = null; // the turn the whole-conversation view should bring on screen next
     this.size = { width: 1200, height: 800 };
     this.followed = {};
+    this.callsVisible = { start: 0, end: 0 }; // rows the calls list last drew (set by the list)
     this.cache = {};
     this.ended = {};
     this.endedAt = 0;
@@ -417,6 +422,16 @@ export default class AgentDash extends View {
     return callsLens({
       items, counts, kind: this.state.kind, follow: this.state.follow, compact, detailOpen: this.state.detailOpen,
       selectedKey: picked?.key ?? null, stage, scrollHandle: this.scroll,
+      listWidth: this.state.ui["w:calls"] ?? 420, visible: this.callsVisible,
+      onListWidth: (w, cx) => {
+        if (Math.abs((this.state.ui["w:calls"] ?? 420) - w) > 6) this.setUi("w:calls", w, cx);
+      },
+      // The pinned prompt follows the list: the list paints after this view does, so look again once
+      // it has settled.
+      onScrolled: (cx) => {
+        cx.notify();
+        cx.timer.after(90, (later) => later.notify());
+      },
       rel: (p) => relPath(p, scopeCwd, home()),
       empty: scopeSession && !scopeSession.loaded ? { title: "기록을 읽는 중이에요", body: null } : null,
       onPick: (key, cx) => this.pickCall(key, cx),
@@ -445,6 +460,35 @@ export default class AgentDash extends View {
       ui: (key, fallback) => this.ui(key, fallback),
       setUi: (key, value, cx) => this.setUi(key, value, cx),
       stageCtx: (address, s, agent, call) => this.stageCtx(address, s, agent, call, cx),
+      chatScroll: this.chatScroll,
+      takeChatJump: () => {
+        const turn = this.chatJump;
+        this.chatJump = null;
+        return turn;
+      },
+      // The whole conversation with one agent, opened around turn `n` (a window of turns: the
+      // app draws every row, so the rest is a button away).
+      openChat: (address, n, cx) => {
+        const total = this.store.get(address)?.prompts.length ?? 0;
+        if (!total) return;
+        const from = Math.max(1, Math.min(n - 1, total - CHAT_PAGE + 1));
+        const to = from + CHAT_PAGE - 1 >= total ? null : from + CHAT_PAGE - 1;
+        this.chatJump = n;
+        this.update({ ui: { ...this.state.ui, chat: { address, from, to }, "chat:dir": null } }, cx);
+      },
+      // To the first or the last thing said: the window moves there, then the view scrolls to it.
+      jumpChat: (where, cx) => {
+        const chat = this.state.ui.chat;
+        const total = chat ? this.store.get(chat.address)?.prompts.length ?? 0 : 0;
+        if (!total) return;
+        const next = where === "first" ? { ...chat, from: 1, to: CHAT_PAGE >= total ? null : CHAT_PAGE } : { ...chat, from: Math.max(1, total - CHAT_PAGE + 1), to: null };
+        this.chatJump = where;
+        this.update({ ui: { ...this.state.ui, chat: next, "chat:dir": null } }, cx);
+      },
+      // Which way the conversation was last scrolled ("up" toward the start): it decides which jump buttons show.
+      onChatWheel: (dir, cx) => {
+        if (this.state.ui["chat:dir"] !== dir) this.setUi("chat:dir", dir, cx);
+      },
       pickScope: (address, cx, lens) => this.pickScope(address, cx, lens),
       pickLens: (lens, cx) => this.pickLens(lens, cx),
       openCall: (address, callId, cx) => {
